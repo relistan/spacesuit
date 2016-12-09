@@ -8,8 +8,11 @@ defmodule Spacesuit.TopPageHandler do
     ups_headers = cowboy_to_hackney(Map.get(incoming, :headers))
 
     case request_upstream(method, @upstream_url, ups_headers, incoming, []) do
-      {:ok, status, _headers, upstream} ->
-        downstream = :cowboy_req.stream_reply(status, incoming)
+      {:ok, status, headers, upstream} ->
+        down_headers = hackney_to_cowboy(headers)
+        # This always does a chunked reply, which is a shame because we
+        # usually have the content-length. TODO figure this out.
+        downstream = :cowboy_req.stream_reply(status, down_headers, incoming)
         stream(downstream, upstream)
       {:error, :econnrefused} ->
         :cowboy_req.reply(502, %{}, "Bad Gateway", incoming)
@@ -27,6 +30,12 @@ defmodule Spacesuit.TopPageHandler do
     end
   end
 
+  # Convert headers from Hackney list format to Cowboy map format
+  defp hackney_to_cowboy(headers) do
+    List.foldl(headers, %{}, fn({k,v}, memo) -> Map.put(memo, k, v) end)
+  end
+
+  # Convery headers from Cowboy map format to Hackney list format
   defp cowboy_to_hackney(headers) do
     if headers == nil do
       []

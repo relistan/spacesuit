@@ -5,11 +5,11 @@ defmodule Spacesuit.TopPageHandler do
 
   def init(incoming, state) do
     method = Map.get(incoming, :method) |> String.downcase
-    ups_headers = cowboy_to_hackney(Map.get(incoming, :headers))
+    ups_headers = Map.get(incoming, :headers) |> cowboy_to_hackney
 
     case request_upstream(method, @upstream_url, ups_headers, incoming, []) do
       {:ok, status, headers, upstream} ->
-        down_headers = hackney_to_cowboy(headers)
+        down_headers = headers |> hackney_to_cowboy
         # This always does a chunked reply, which is a shame because we
         # usually have the content-length. TODO figure this out.
         downstream = :cowboy_req.stream_reply(status, down_headers, incoming)
@@ -32,7 +32,11 @@ defmodule Spacesuit.TopPageHandler do
 
   # Convert headers from Hackney list format to Cowboy map format
   defp hackney_to_cowboy(headers) do
-    List.foldl(headers, %{}, fn({k,v}, memo) -> Map.put(memo, k, v) end)
+    headers 
+      |> List.foldl(%{}, fn({k,v}, memo) -> Map.put(memo, k, v) end)
+      |> Map.drop([ "Date", "date", "Content-Length", "content-length",
+          "Transfer-Encoding", "transfer-encoding" ])
+
   end
 
   # Convery headers from Cowboy map format to Hackney list format

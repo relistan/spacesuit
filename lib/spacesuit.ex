@@ -10,7 +10,12 @@ defmodule Spacesuit do
 
     {:ok, _} = :cowboy.start_clear(
         :http, 100, [port: 8080],
-        %{ env: %{ dispatch: dispatch } }
+        %{
+           env: %{
+            dispatch: dispatch
+           }
+           #middlewares: [:cowboy_router, <your_middleware_here>, :cowboy_handler]
+         }
     )
 
     Spacesuit.Supervisor.start_link

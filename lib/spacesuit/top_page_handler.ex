@@ -13,7 +13,7 @@ defmodule Spacesuit.TopPageHandler do
         # This always does a chunked reply, which is a shame because we
         # usually have the content-length. TODO figure this out.
         downstream = :cowboy_req.stream_reply(status, down_headers, incoming)
-        stream(downstream, upstream)
+        stream(upstream, downstream)
       {:error, :econnrefused} ->
         :cowboy_req.reply(502, %{}, "Bad Gateway", incoming)
     end
@@ -21,22 +21,23 @@ defmodule Spacesuit.TopPageHandler do
     {:ok, incoming, state}
   end
 
-  defp request_upstream(method, url, ups_headers, incoming, _) do
-    case Map.fetch(incoming, :has_body) do
+  defp request_upstream(method, url, ups_headers, downstream, _) do
+    case Map.fetch(downstream, :has_body) do
       {:ok, true}  ->
-        :hackney.request(method, url, ups_headers, Map.fetch(incoming, :body), [])
+        # This reads the whole incoming body into RAM. TODO see if we can not do that.
+        :hackney.request(method, url, ups_headers, Map.fetch(downstream, :body), [])
       {:ok, false} ->
         :hackney.request(method, url, ups_headers, [], [])
     end
   end
 
-  # Convert headers from Hackney list format to Cowboy map format
+  # Convert headers from Hackney list format to Cowboy map format.
+  # Drops some headers we don't want to pass through.
   defp hackney_to_cowboy(headers) do
     headers 
       |> List.foldl(%{}, fn({k,v}, memo) -> Map.put(memo, k, v) end)
       |> Map.drop([ "Date", "date", "Content-Length", "content-length",
           "Transfer-Encoding", "transfer-encoding" ])
-
   end
 
   # Convery headers from Cowboy map format to Hackney list format
@@ -50,20 +51,22 @@ defmodule Spacesuit.TopPageHandler do
     end
   end
 
-  defp stream(incoming, upstream) do
+  defp stream(upstream, downstream) do
     case :hackney.stream_body(upstream) do
       {:ok, data} ->
-        :ok = :cowboy_req.stream_body(data, :nofin, incoming)
-        stream(incoming, upstream)
+        :ok = :cowboy_req.stream_body(data, :nofin, downstream)
+        stream(upstream, downstream)
       :done -> 
-        :ok = :cowboy_req.stream_body(<<>>, :fin, incoming)
+        :ok = :cowboy_req.stream_body(<<>>, :fin, downstream)
         :ok
       {:error, reason} ->
         IO.puts "Error! #{reason}"
+      _ ->
+        IO.puts "Unexpected non-match in stream/2!"
     end
   end
 
-  def terminate(_reason, _incoming, _state), do: :ok
+  def terminate(_reason, _downstream, _state), do: :ok
 end
 
 # %{bindings: [], body_length: 0, has_body: false,

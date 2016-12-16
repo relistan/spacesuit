@@ -1,5 +1,6 @@
 defmodule Spacesuit.Mixfile do
   use Mix.Project
+  use Mix.Config
 
   def project do
     [app: :spacesuit,
@@ -35,4 +36,8 @@ defmodule Spacesuit.Mixfile do
       {:cowboy, github: "extend/cowboy"}
     ]
   end
+
+  config :logger,
+    backends: [:console],
+    compile_time_purge_level: :info
 end

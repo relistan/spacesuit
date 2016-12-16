@@ -1,11 +1,11 @@
-defmodule Spacesuit.TopPageHandler do
+defmodule Spacesuit.ProxyHandler do
 
   #@upstream_url "http://localhost:9090/"
   @upstream_url "https://news.ycombinator.com/"
 
   def init(incoming, state) do
     method = Map.get(incoming, :method) |> String.downcase
-    ups_headers = Map.get(incoming, :headers) |> cowboy_to_hackney
+    ups_headers = Map.get(incoming, :headers) |> cowboy_to_hackney(incoming)
 
     case request_upstream(method, @upstream_url, ups_headers, incoming, []) do
       {:ok, status, headers, upstream} ->
@@ -41,14 +41,19 @@ defmodule Spacesuit.TopPageHandler do
   end
 
   # Convery headers from Cowboy map format to Hackney list format
-  defp cowboy_to_hackney(headers) do
-    if headers == nil do
-      []
-    else
-      Map.delete(headers, :host) 
-        #|> Map.put("user-agent", "Spacesuit 0.1.0")
-        |> Map.to_list
-    end
+  defp cowboy_to_hackney(headers, req) do
+    {:ok, {ip, _port}} = Map.fetch(req, :peer)
+
+    peer = ip
+      |> Tuple.to_list
+      |> Enum.map(&(Integer.to_string(&1)))
+      |> Enum.join(".")
+
+    (headers || %{})
+      |> Map.put(:"X-Forwarded-For", peer)
+      |> Map.delete(:host)
+      #|> Map.put("user-agent", "Spacesuit 0.1.0")
+      |> Map.to_list
   end
 
   defp stream(upstream, downstream) do

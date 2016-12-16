@@ -4,7 +4,7 @@ defmodule Spacesuit do
   def start(_type, _args) do
     dispatch = :cowboy_router.compile([
       {:_, [
-          {"/[...]", Spacesuit.TopPageHandler, []}
+          {"/[...]", Spacesuit.ProxyHandler, []}
       ]}
     ])
 
@@ -13,7 +13,10 @@ defmodule Spacesuit do
         %{
            env: %{
             dispatch: dispatch
-           }
+           },
+           middlewares: [
+             :cowboy_router, :cowboy_handler, Spacesuit.DebugMiddleware,
+           ]
            #middlewares: [:cowboy_router, <your_middleware_here>, :cowboy_handler]
          }
     )

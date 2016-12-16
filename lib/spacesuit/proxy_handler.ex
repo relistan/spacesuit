@@ -1,22 +1,24 @@
 defmodule Spacesuit.ProxyHandler do
 
   #@upstream_url "http://localhost:9090/"
-  @upstream_url "https://news.ycombinator.com/"
 
   def init(incoming, state) do
+    # :cowboy_req.binding/2 can fetch bindings from routing URL
+    [{:destination, upstream_url}] = state
+
     method = Map.get(incoming, :method) |> String.downcase
     ups_headers = Map.get(incoming, :headers) |> cowboy_to_hackney(incoming)
 
-    case request_upstream(method, @upstream_url, ups_headers, incoming, []) do
+    case request_upstream(method, upstream_url, ups_headers, incoming, []) do
       {:ok, status, headers, upstream} ->
         down_headers = headers |> hackney_to_cowboy
         # This always does a chunked reply, which is a shame because we
         # usually have the content-length. TODO figure this out.
         downstream = :cowboy_req.stream_reply(status, down_headers, incoming)
         stream(upstream, downstream)
-      {:error, :econnrefused} -> # Connection refused
+      {:error, :econnrefused} ->
         :cowboy_req.reply(502, %{}, "Bad Gateway - Connection refused", incoming)
-      {:error, :closed} ->       # Connection prematurely closed
+      {:error, :closed} ->
         :cowboy_req.reply(502, %{}, "Bad Gateway - Connection closed", incoming)
     end
     
@@ -42,14 +44,20 @@ defmodule Spacesuit.ProxyHandler do
           "Transfer-Encoding", "transfer-encoding" ])
   end
 
-  # Convery headers from Cowboy map format to Hackney list format
-  defp cowboy_to_hackney(headers, req) do
+  # Find the peer from the request and format it into a string
+  # we can pass in the X-Forwarded-For header.
+  defp extract_peer(req) do
     {:ok, {ip, _port}} = Map.fetch(req, :peer)
 
-    peer = ip
+    ip
       |> Tuple.to_list
       |> Enum.map(&(Integer.to_string(&1)))
       |> Enum.join(".")
+  end
+
+  # Convery headers from Cowboy map format to Hackney list format
+  defp cowboy_to_hackney(headers, req) do
+    peer = extract_peer(req)
 
     (headers || %{})
       |> Map.put("X-Forwarded-For", peer)

@@ -1,0 +1,8 @@
+---
+":_":
+   "/users/:user_id/[...]":
+     destination: "https://google.com"
+     fields:
+      - user_id
+   "/[...]":
+     destination: "https://news.ycombinator.com"

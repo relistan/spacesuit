@@ -16,7 +16,7 @@ defmodule Spacesuit.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [
-      applications: [:logger, :cowboy, :hackney],
+      applications: [:logger, :cowboy, :hackney, :yamerl],
       mod: { Spacesuit, [] }
     ]
   end
@@ -33,7 +33,8 @@ defmodule Spacesuit.Mixfile do
   defp deps do
     [
       {:hackney, "~> 1.6.3"},
-      {:cowboy, github: "extend/cowboy"}
+      {:cowboy, github: "extend/cowboy"},
+      {:yamerl, "~> 0.4.0"}
     ]
   end
 

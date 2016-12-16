@@ -14,8 +14,10 @@ defmodule Spacesuit.ProxyHandler do
         # usually have the content-length. TODO figure this out.
         downstream = :cowboy_req.stream_reply(status, down_headers, incoming)
         stream(upstream, downstream)
-      {:error, :econnrefused} ->
-        :cowboy_req.reply(502, %{}, "Bad Gateway", incoming)
+      {:error, :econnrefused} -> # Connection refused
+        :cowboy_req.reply(502, %{}, "Bad Gateway - Connection refused", incoming)
+      {:error, :closed} ->       # Connection prematurely closed
+        :cowboy_req.reply(502, %{}, "Bad Gateway - Connection closed", incoming)
     end
     
     {:ok, incoming, state}
@@ -50,8 +52,8 @@ defmodule Spacesuit.ProxyHandler do
       |> Enum.join(".")
 
     (headers || %{})
-      |> Map.put(:"X-Forwarded-For", peer)
-      |> Map.delete(:host)
+      |> Map.put("X-Forwarded-For", peer)
+      |> Map.drop([ "host", "Host" ])
       #|> Map.put("user-agent", "Spacesuit 0.1.0")
       |> Map.to_list
   end

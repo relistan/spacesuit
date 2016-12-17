@@ -1,8 +1,11 @@
 ---
 ":_":
-   "/users/:user_id/[...]":
-     destination: "https://google.com"
-     fields:
-      - user_id
+   "/users/:user_id":
+     name: "users to google"
+     destination: "http://localhost:9090"
+     map: "http://localhost:9090/:user_id"
+
    "/[...]":
+     name: "others to hacker news"
      destination: "https://news.ycombinator.com"
+     map: ""

@@ -1,15 +1,17 @@
 defmodule Spacesuit.ProxyHandler do
-
-  #@upstream_url "http://localhost:9090/"
+  require Logger
 
   def init(incoming, state) do
-    # :cowboy_req.binding/2 can fetch bindings from routing URL
-    [{:destination, upstream_url}] = state
+    {'name', route_name} = List.keyfind(state, 'name', 0)
+    Logger.info "Processing '#{route_name}'"
 
+    %{ bindings: bindings } = incoming
+
+    ups_url = build_upstream_url(state, bindings)
     method = Map.get(incoming, :method) |> String.downcase
     ups_headers = Map.get(incoming, :headers) |> cowboy_to_hackney(incoming)
 
-    case request_upstream(method, upstream_url, ups_headers, incoming, []) do
+    case request_upstream(method, ups_url, ups_headers, incoming, []) do
       {:ok, status, headers, upstream} ->
         down_headers = headers |> hackney_to_cowboy
         # This always does a chunked reply, which is a shame because we
@@ -23,6 +25,28 @@ defmodule Spacesuit.ProxyHandler do
     end
     
     {:ok, incoming, state}
+  end
+
+  defp build_upstream_url(state, bindings) do
+    {'map', route_map } = List.keyfind(state, 'map', 0)
+
+    case bindings do
+      [] ->
+        {'destination', destination} = List.keyfind(state, 'destination', 0)
+        destination
+      _ ->
+        Spacesuit.Router.build(route_map, bindings)
+    end
+  end
+
+  defp get_destination(state) do
+    case List.keyfind(state, 'destination', 0) do
+      {'destination', destination} ->
+        {:ok, destination}
+      unexpected ->
+        Logger.error("Expecting destination... But got '#{inspect(unexpected)}'")
+        {:error, nil }
+    end
   end
 
   defp request_upstream(method, url, ups_headers, downstream, _) do

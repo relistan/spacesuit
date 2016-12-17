@@ -17,7 +17,7 @@ defmodule Spacesuit.Mixfile do
   def application do
     [
       applications: [:logger, :cowboy, :hackney, :yamerl],
-      mod: { Spacesuit, [] }
+      #mod: { Spacesuit, [] }
     ]
   end
 

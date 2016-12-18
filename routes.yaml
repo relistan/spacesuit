@@ -1,9 +1,13 @@
 ---
 ":_":
    "/users/:user_id":
-     name: "users to localhost:9090"
+     description: "users to localhost:9090"
      map: "http://localhost:9090/:user_id"
 
+   "/users/something/:user_id":
+     description: "users to localhost:9090"
+     map: "http://localhost:9090/something/:user_id"
+
    "/[...]":
-     name: "others to hacker news"
+     description: "others to hacker news"
      destination: "https://news.ycombinator.com"

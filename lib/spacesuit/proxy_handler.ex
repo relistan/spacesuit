@@ -3,15 +3,23 @@ defmodule Spacesuit.ProxyHandler do
 
   # Callback from the Cowboy handler
   def init(req, state) do
-    route_name = Dict.get(state, :name, "un-named")
+    route_name = Dict.get(state, :description, "un-named")
     Logger.info "Processing '#{route_name}'"
 
     %{ bindings: bindings } = req
 
+    # Prepare some things we'll need
     ups_url = build_upstream_url(state, bindings)
     method = Map.get(req, :method) |> String.downcase
     ups_headers = Map.get(req, :headers) |> cowboy_to_hackney(req)
 
+    # Make the proxy request
+    handle_request(req, ups_url, ups_headers, method)
+    
+    {:ok, req, state}
+  end
+
+  defp handle_request(req, ups_url, ups_headers, method) do
     case request_upstream(method, ups_url, ups_headers, req, []) do
       {:ok, status, headers, upstream} ->
         down_headers = headers |> hackney_to_cowboy
@@ -23,9 +31,9 @@ defmodule Spacesuit.ProxyHandler do
         :cowboy_req.reply(502, %{}, "Bad Gateway - Connection refused", req)
       {:error, :closed} ->
         :cowboy_req.reply(502, %{}, "Bad Gateway - Connection closed", req)
+      unexpected ->
+        Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"
     end
-    
-    {:ok, req, state}
   end
 
   # Run the route builder to generate the correct upstream URL
@@ -76,7 +84,6 @@ defmodule Spacesuit.ProxyHandler do
     (headers || %{})
       |> Map.put("X-Forwarded-For", peer)
       |> Map.drop([ "host", "Host" ])
-      #|> Map.put("user-agent", "Spacesuit 0.1.0")
       |> Map.to_list
   end
 

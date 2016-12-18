@@ -21,23 +21,27 @@ defmodule Spacesuit.ProxyHandler do
 
   defp handle_request(req, ups_url, ups_headers, method) do
     case request_upstream(method, ups_url, ups_headers, req, []) do
+
       {:ok, status, headers, upstream} ->
         down_headers = headers |> hackney_to_cowboy
         # This always does a chunked reply, which is a shame because we
         # usually have the content-length. TODO figure this out.
         downstream = :cowboy_req.stream_reply(status, down_headers, req)
         stream(upstream, downstream)
+
       {:error, :econnrefused} ->
         :cowboy_req.reply(502, %{}, "Bad Gateway - Connection refused", req)
+
       {:error, :closed} ->
         :cowboy_req.reply(502, %{}, "Bad Gateway - Connection closed", req)
+
       unexpected ->
         Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"
     end
   end
 
   # Run the route builder to generate the correct upstream URL
-  defp build_upstream_url(state, bindings) do
+  def build_upstream_url(state, bindings) do
     case bindings do
       [] ->
         Dict.get(state, :destination)

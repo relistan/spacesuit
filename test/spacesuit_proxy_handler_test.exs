@@ -40,4 +40,12 @@ defmodule SpacesuitProxyHandlerTest do
 
     assert nil == List.keyfind(processed, "Host", 0)
   end
+
+  test "building the upstream url when destination is set and no bindings exist" do
+    url = Spacesuit.ProxyHandler.build_upstream_url(
+      [destination: "the moon", map: []], []
+    )
+
+    assert ^url = "the moon"
+  end
 end

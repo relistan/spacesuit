@@ -2,7 +2,7 @@ defmodule Spacesuit.ProxyHandler do
   require Logger
 
   def init(incoming, state) do
-    {'name', route_name} = List.keyfind(state, 'name', 0)
+    route_name = Dict.get(state, :name, "un-named")
     Logger.info "Processing '#{route_name}'"
 
     %{ bindings: bindings } = incoming
@@ -28,14 +28,11 @@ defmodule Spacesuit.ProxyHandler do
   end
 
   defp build_upstream_url(state, bindings) do
-    {'map', route_map } = List.keyfind(state, 'map', 0)
-
     case bindings do
       [] ->
-        {'destination', destination} = List.keyfind(state, 'destination', 0)
-        destination
+        Dict.get(state, :destination)
       _ ->
-        Spacesuit.Router.build(route_map, bindings)
+        Spacesuit.Router.build(state, bindings)
     end
   end
 

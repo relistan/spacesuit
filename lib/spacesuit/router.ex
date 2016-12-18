@@ -49,7 +49,8 @@ defmodule Spacesuit.Router do
   end
 
   def build(route_map, bindings) do
-    %{ uri: uri, map: map } = route_map
+    uri = Dict.get(route_map, :uri)
+    map = Dict.get(route_map, :map)
 
     path = map
       |> Enum.map(fn(x) -> x.(bindings) end)

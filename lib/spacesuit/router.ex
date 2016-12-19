@@ -1,10 +1,33 @@
 defmodule Spacesuit.Router do
+  require Logger
 
   @routes_file "routes.yaml"
 
   def load_routes do
     [routes] = :yamerl_constr.file(@routes_file)
+    # Let's validate what we got and at least fail to start if it's busted
+    if !valid_routes?(routes) do
+      raise "Invalid routes! #{inspect(routes)}"
+    end
     transform_routes(routes)
+  end
+
+  def valid_routes?(routes) do
+    try do
+      Enum.all?(routes, fn(r) ->
+        {_host, entries} = r
+        Enum.all?(entries, fn(e) ->
+          {_route, items} = e
+          List.keymember?(items, 'description', 0) && (
+            List.keymember?(items, 'map', 0) || List.keymember?(items, 'destination', 0)
+          )
+        end)
+      end)
+    rescue
+      e in MatchError ->
+        Logger.error "Bad routes! Cannot parse structure: #{e}"
+        false
+    end
   end
 
   def transform_routes(source) do

@@ -5,20 +5,37 @@ defmodule SpacesuitRouterTest do
   setup_all do
     routes = [{':_',
          [{'/users/:user_id',
-           [{'name', 'users to google'}, {'destination', 'http://localhost:9090'},
-            {'map', 'http://localhost:9090/:user_id'}]},
+            [
+              {'description', 'users to localhost'},
+              {'destination', 'http://localhost:9090'},
+              {'map', 'http://localhost:9090/:user_id'}
+            ]},
           {'/[...]',
-           [{'name', 'others to hacker news'},
-            {'destination', 'https://news.ycombinator.com'}, {'map', []}]}]}]
+            [
+              {'description', 'others to hacker news'},
+              {'destination', 'https://news.ycombinator.com'},
+              {'map', []}
+             ]}
+          ]}]
 
     {:ok, routes: routes}
   end
 
-  test "transform_routes does not raise errors", state do
+  test "that it validates well-formed routes", state do
+    assert Spacesuit.Router.valid_routes?(state[:routes]) == true
+  end
+
+  test "that it invalidates malformed routes", state do
+    [{ host, [{ route, [ entry | _ ]} | _ ] } | _ ] = state[:routes]
+    new_routes = [{ host, [{ route, [ entry ]} ] } ]
+    assert Spacesuit.Router.valid_routes?(new_routes) == false
+  end
+
+  test "that transform_routes does not raise errors", state do
     assert [] != Spacesuit.Router.transform_routes(state[:routes])
   end
 
-  test "compiling routes returns the right structure" do
+  test "that compiling routes returns the right structure" do
     uri_str = "http://example.com/users/:user_id"
 
     %{ map: route_map, uri: uri } = Spacesuit.Router.compile(uri_str)
@@ -26,7 +43,7 @@ defmodule SpacesuitRouterTest do
     assert URI.to_string(uri) == uri_str
   end
 
-  test "build can process the output from compile" do
+  test "that build() can process the output from compile" do
     uri_str = "http://example.com/users/:user_id"
 
     route_map = Spacesuit.Router.compile(uri_str)

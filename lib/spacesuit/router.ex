@@ -89,7 +89,7 @@ defmodule Spacesuit.Router do
       String.split(uri.path, "/")
         |> Enum.map(&func_for_key/1)
     else
-      {}
+      [] 
     end
 
     %{ map: map, uri: uri }

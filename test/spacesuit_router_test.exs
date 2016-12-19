@@ -45,10 +45,9 @@ defmodule SpacesuitRouterTest do
 
   test "that build() can process the output from compile" do
     uri_str = "http://example.com/users/:user_id"
-
     route_map = Spacesuit.Router.compile(uri_str)
-    result = Spacesuit.Router.build(route_map, [user_id: 123])
 
+    result = Spacesuit.Router.build(route_map, [user_id: 123])
     assert result == "http://example.com/users/123"
   end
 

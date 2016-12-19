@@ -30,10 +30,10 @@ defmodule Spacesuit.ProxyHandler do
         stream(upstream, downstream)
 
       {:error, :econnrefused} ->
-        :cowboy_req.reply(502, %{}, "Bad Gateway - Connection refused", req)
+        :cowboy_req.reply(503, %{}, "<h1>503 Service Unavailable - Connection refused</h1>", req)
 
       {:error, :closed} ->
-        :cowboy_req.reply(502, %{}, "Bad Gateway - Connection closed", req)
+        :cowboy_req.reply(502, %{}, "<h1>502 Bad Gateway - Connection closed</h1>", req)
 
       unexpected ->
         Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"

@@ -30,10 +30,13 @@ defmodule Spacesuit.ProxyHandler do
         stream(upstream, downstream)
 
       {:error, :econnrefused} ->
-        :cowboy_req.reply(503, %{}, "<h1>503 Service Unavailable - Connection refused</h1>", req)
+        reply(req, 503, "Service Unavailable - Connection refused")
 
       {:error, :closed} ->
-        :cowboy_req.reply(502, %{}, "<h1>502 Bad Gateway - Connection closed</h1>", req)
+        reply(req, 502, "Bad Gateway - Connection closed")
+
+      {:error, :timeout} ->
+        reply(req, 502, "Bad Gateway - Connection timeout")
 
       unexpected ->
         Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"
@@ -105,6 +108,13 @@ defmodule Spacesuit.ProxyHandler do
       _ ->
         Logger.error "Unexpected non-match in stream/2!"
     end
+  end
+
+  def reply(req, code, message) do
+    msg = Spacesuit.ApiMessage.encode(
+      %Spacesuit.ApiMessage{status: "error", message: message}
+    )
+    :cowboy_req.reply(code, %{}, msg, req)
   end
 
   def terminate(_reason, _downstream, _state), do: :ok

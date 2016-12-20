@@ -1,3 +1,8 @@
+# Encapsulate the API messages we hand back. Ideally
+# this would support a config option to return whatever
+# the API uses. i.e. protobuf, msgpack, JSON
+
+# Just does JSON for now
 defmodule Spacesuit.ApiMessage do
   @derive [Poison.Encoder]
   defstruct [:status, :message]

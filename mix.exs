@@ -35,7 +35,8 @@ defmodule Spacesuit.Mixfile do
       {:hackney, "~> 1.6.3"},
       {:cowboy, github: "extend/cowboy"},
       {:yamerl, "~> 0.4.0"},
-      {:poison, "~> 3.0"}
+      {:poison, "~> 3.0"},
+      #{:yaml_elixir, "~> 1.1.0"}
     ]
   end
 

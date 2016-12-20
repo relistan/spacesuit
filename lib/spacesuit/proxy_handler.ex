@@ -37,6 +37,9 @@ defmodule Spacesuit.ProxyHandler do
       {:error, :timeout} ->
         error_reply(req, 502, "Bad Gateway - Connection timeout")
 
+      {:error, :bad_request} ->
+        error_reply(req, 400, "Bad Request")
+
       unexpected ->
         Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"
     end

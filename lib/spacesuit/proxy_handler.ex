@@ -21,7 +21,6 @@ defmodule Spacesuit.ProxyHandler do
 
   defp handle_request(req, ups_url, ups_headers, method) do
     case request_upstream(method, ups_url, ups_headers, req, []) do
-
       {:ok, status, headers, upstream} ->
         down_headers = headers |> hackney_to_cowboy
         # This always does a chunked reply, which is a shame because we
@@ -30,13 +29,13 @@ defmodule Spacesuit.ProxyHandler do
         stream(upstream, downstream)
 
       {:error, :econnrefused} ->
-        reply(req, 503, "Service Unavailable - Connection refused")
+        error_reply(req, 503, "Service Unavailable - Connection refused")
 
       {:error, :closed} ->
-        reply(req, 502, "Bad Gateway - Connection closed")
+        error_reply(req, 502, "Bad Gateway - Connection closed")
 
       {:error, :timeout} ->
-        reply(req, 502, "Bad Gateway - Connection timeout")
+        error_reply(req, 502, "Bad Gateway - Connection timeout")
 
       unexpected ->
         Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"
@@ -110,7 +109,9 @@ defmodule Spacesuit.ProxyHandler do
     end
   end
 
-  def reply(req, code, message) do
+  # Send messages back to Cowboy, encoded in the format used
+  # by the API
+  def error_reply(req, code, message) do
     msg = Spacesuit.ApiMessage.encode(
       %Spacesuit.ApiMessage{status: "error", message: message}
     )

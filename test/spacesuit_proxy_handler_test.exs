@@ -43,7 +43,7 @@ defmodule SpacesuitProxyHandlerTest do
 
   test "building the upstream url when destination is set and no bindings exist" do
     url = Spacesuit.ProxyHandler.build_upstream_url(
-      [destination: "the moon", map: []], []
+      [destination: "the moon", map: %{}], []
     )
 
     assert ^url = "the moon"

@@ -101,9 +101,9 @@ defmodule Spacesuit.ProxyHandler do
         :ok = :cowboy_req.stream_body(<<>>, :fin, downstream)
         :ok
       {:error, reason} ->
-        IO.puts "Error! #{reason}"
+        Logger.error "Error in stream/2: #{reason}"
       _ ->
-        IO.puts "Unexpected non-match in stream/2!"
+        Logger.error "Unexpected non-match in stream/2!"
     end
   end
 

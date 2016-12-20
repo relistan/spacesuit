@@ -40,14 +40,14 @@ defmodule Spacesuit.Router do
     {route, opts} = source
 
     # We have to turn this nastiness into something we can use
-    atomized_opts = opts |> Enum.map(
-      fn({k, v}) ->
-        { String.to_atom(to_string(k)), v }
+    atomized_opts = opts |> List.foldl(%{},
+      fn({k, v}, memo) ->
+        Map.put(memo, String.to_atom(to_string(k)), v)
       end)
 
-    handler_opts = case Dict.fetch(atomized_opts, :map) do
+    handler_opts = case Map.fetch(atomized_opts, :map) do
       {:ok, route_map} -> 
-        Dict.merge(atomized_opts, compile(route_map))
+        Map.merge(atomized_opts, compile(route_map))
       _ ->
         atomized_opts
     end

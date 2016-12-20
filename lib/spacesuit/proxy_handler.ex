@@ -44,7 +44,7 @@ defmodule Spacesuit.ProxyHandler do
   def build_upstream_url(state, bindings) do
     case bindings do
       [] ->
-        Dict.get(state, :destination)
+        state[:destination]
       _ ->
         Spacesuit.Router.build(state, bindings)
     end

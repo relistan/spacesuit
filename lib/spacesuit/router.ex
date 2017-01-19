@@ -14,10 +14,8 @@ defmodule Spacesuit.Router do
 
   def valid_routes?(routes) do
     try do
-      Enum.all?(routes, fn(r) ->
-        {_host, entries} = r
-        Enum.all?(entries, fn(e) ->
-          {_route, items} = e
+      Enum.all?(routes, fn({_host, entries}) ->
+        Enum.all?(entries, fn({_route, items}) ->
           List.keymember?(items, 'description', 0) && (
             List.keymember?(items, 'map', 0) || List.keymember?(items, 'destination', 0)
           )

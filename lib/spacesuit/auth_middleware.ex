@@ -9,7 +9,7 @@ defmodule Spacesuit.AuthMiddleware do
 
       "magic!" ->
         Logger.warn "Unauthorized request"
-        reply(req, 401, "Unauthorized")
+        error_reply(req, 401, "Unauthorized")
         {:halt, req}
 
       "Bearer " <> token ->
@@ -28,7 +28,7 @@ defmodule Spacesuit.AuthMiddleware do
     %{ req | headers: Map.delete(req[:headers], "authorization") }
   end
 
-  defp reply(req, code, message) do
+  defp error_reply(req, code, message) do
     msg = Spacesuit.ApiMessage.encode(
       %Spacesuit.ApiMessage{status: "error", message: message}
     )

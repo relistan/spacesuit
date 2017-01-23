@@ -2,11 +2,7 @@ defmodule Spacesuit do
   use Application
 
   def start(_type, _args) do
-    routes = Spacesuit.Router.load_routes
-
-    dispatch = routes
-      |> List.insert_at(0, {"admin.example.com", [ {"/admin/list_routes", Spacesuit.AdminHandler, [routes] }]})
-      |> :cowboy_router.compile
+    dispatch = Spacesuit.Router.load_routes |> :cowboy_router.compile
 
 #    dispatch = :cowboy_router.compile([
 #      {:_, [

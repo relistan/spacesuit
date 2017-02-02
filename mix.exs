@@ -5,10 +5,12 @@ defmodule Spacesuit.Mixfile do
   def project do
     [app: :spacesuit,
      version: "0.1.0",
-     elixir: "~> 1.3",
+     elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps()]
+     deps: deps(),
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: [coveralls: :test] ]
   end
 
   # Configuration for the OTP application
@@ -36,7 +38,7 @@ defmodule Spacesuit.Mixfile do
       {:cowboy, github: "extend/cowboy"},
       {:yamerl, "~> 0.4.0"},
       {:poison, "~> 3.0"},
-      #{:yaml_elixir, "~> 1.1.0"}
+      {:excoveralls, "~> 0.6", only: :test}
     ]
   end
 

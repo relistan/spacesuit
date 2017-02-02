@@ -43,7 +43,7 @@ defmodule Spacesuit.Router do
 
     atomized_opts = atomize_opts(opts)
 
-    handler_opts =
+    compiled_opts =
       @http_verbs |> List.foldl(%{}, fn(verb, memo) ->
         case Map.fetch(atomized_opts, verb) do
           {:ok, route_map} ->
@@ -53,6 +53,8 @@ defmodule Spacesuit.Router do
             memo # do nothing, we just don't have this verb
         end
       end)
+
+    handler_opts = Map.merge(atomized_opts, compiled_opts)
 
     {route, Spacesuit.ProxyHandler, handler_opts}
   end

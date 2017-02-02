@@ -20,7 +20,7 @@ defmodule Spacesuit.ProxyHandler do
   end
 
   defp handle_request(req, ups_url, ups_headers, method) do
-    case request_upstream(method, ups_url, ups_headers, req, []) do
+    case request_upstream(method, ups_url, ups_headers, req) do
       {:ok, status, headers, upstream} ->
         down_headers = headers |> hackney_to_cowboy
         # This always does a chunked reply, which is a shame because we
@@ -57,7 +57,9 @@ defmodule Spacesuit.ProxyHandler do
   end
 
   # Make the request to the destination using Hackney
-  defp request_upstream(method, url, ups_headers, downstream, _) do
+  defp request_upstream(method, url, ups_headers, downstream) do
+    method = String.downcase(method)
+
     case Map.fetch(downstream, :has_body) do
       {:ok, true}  ->
         # This reads the whole incoming body into RAM. TODO see if we can not do that.

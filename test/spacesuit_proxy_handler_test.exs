@@ -2,10 +2,10 @@ defmodule SpacesuitProxyHandlerTest do
   use ExUnit.Case
   doctest Spacesuit.ProxyHandler
 
-  test "extracting the peer address from the request" do
-    req = %{ peer: {{127,0,0,1},32767} }
+  test "formatting the peer address from the request" do
+    peer = {{127,0,0,1},32767}
 
-    assert Spacesuit.ProxyHandler.extract_peer(req) == "127.0.0.1"
+    assert Spacesuit.ProxyHandler.format_peer(peer) == "127.0.0.1"
   end
 
   test "converting headers to Cowboy format" do
@@ -17,9 +17,9 @@ defmodule SpacesuitProxyHandlerTest do
 
     processed = Spacesuit.ProxyHandler.hackney_to_cowboy(headers)
 
-    assert "localhost" = Dict.get(processed, "Host")
-    assert "not-found" = Dict.get(processed, "Date", "not-found")
-    assert "some-cookie-data" = Dict.get(processed, "cookie", "empty") 
+    assert "localhost" = Map.get(processed, "Host")
+    assert "not-found" = Map.get(processed, "Date", "not-found")
+    assert "some-cookie-data" = Map.get(processed, "cookie", "empty") 
   end
 
   test "converting headers to Hackney format" do
@@ -29,8 +29,8 @@ defmodule SpacesuitProxyHandlerTest do
       "Host" => " localhost:9090"
     }
 
-    req = %{ peer: {{127,0,0,1},32767} }
-    processed = Spacesuit.ProxyHandler.cowboy_to_hackney(headers, req)
+    peer = Spacesuit.ProxyHandler.format_peer({{127,0,0,1},32767})
+    processed = Spacesuit.ProxyHandler.cowboy_to_hackney(headers, peer)
 
     assert {"X-Forwarded-For", "127.0.0.1"} =
       List.keyfind(processed, "X-Forwarded-For", 0)
@@ -43,9 +43,19 @@ defmodule SpacesuitProxyHandlerTest do
 
   test "building the upstream url when destination is set and no bindings exist" do
     url = Spacesuit.ProxyHandler.build_upstream_url(
-      [destination: "the moon", map: %{}], []
+      "GET", [destination: "the moon", map: %{}], []
     )
 
     assert ^url = "the moon"
+  end
+
+  test "building the upstream url when bindings exist" do
+    route_map = Spacesuit.Router.compile(:GET, "http://elsewhere.example.com/:asdf")
+
+    url = Spacesuit.ProxyHandler.build_upstream_url(
+      "GET", route_map, [asdf: "foo"]
+    )
+    
+    assert ^url = "http://elsewhere.example.com/foo"
   end
 end

@@ -1,12 +1,13 @@
 ---
 ":_":
    "/users/:user_id":
-     description: "users to localhost:9090"
-     map: "http://localhost:9090/:user_id"
+     description: "users to [::1]:9090"
+     GET: "http://[::1]:9090/:user_id"
+     POST: "http://[::1]:9090/:user_id"
 
    "/users/something/:user_id":
-     description: "users to localhost:9090"
-     map: "http://localhost:9090/something/:user_id"
+     description: "users to [::1]:9090"
+     GET: "http://[::1]:9090/something/:user_id"
 
    "/[...]":
      description: "others to hacker news"

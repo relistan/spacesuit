@@ -3,12 +3,14 @@ defmodule Spacesuit.Router do
 
   @routes_file "routes.yaml"
 
+  @http_verbs [:GET, :POST, :PUT, :PATCH, :DELETE]
+
   def load_routes do
     [routes] = :yamerl_constr.file(@routes_file)
     # Let's validate what we got and at least fail to start if it's busted
-    if !valid_routes?(routes) do
-      raise "Invalid routes! #{inspect(routes)}"
-    end
+#    if !valid_routes?(routes) do
+#      raise "Invalid routes! #{inspect(routes)}"
+#    end
     transform_routes(routes)
   end
 
@@ -39,20 +41,28 @@ defmodule Spacesuit.Router do
   def transform_one_route(source) do
     {route, opts} = source
 
-    # We have to turn this nastiness into something we can use
-    atomized_opts = opts |> List.foldl(%{},
+    atomized_opts = atomize_opts(opts)
+
+    handler_opts =
+      @http_verbs |> List.foldl(%{}, fn(verb, memo) ->
+        case Map.fetch(atomized_opts, verb) do
+          {:ok, route_map} ->
+            Map.merge(memo, compile(verb, route_map))
+
+          :error ->
+            memo # do nothing, we just don't have this verb
+        end
+      end)
+
+    {route, Spacesuit.ProxyHandler, handler_opts}
+  end
+
+  # Turn nasty structure into a map with atoms
+  def atomize_opts(opts) do
+    opts |> List.foldl(%{},
       fn({k, v}, memo) ->
         Map.put(memo, String.to_atom(to_string(k)), v)
       end)
-
-    handler_opts = case Map.fetch(atomized_opts, :map) do
-      {:ok, route_map} -> 
-        Map.merge(atomized_opts, compile(route_map))
-      _ ->
-        atomized_opts
-    end
-
-    {route, Spacesuit.ProxyHandler, handler_opts}
   end
 
   # Returns a function that will handle the route substitution
@@ -63,7 +73,7 @@ defmodule Spacesuit.Router do
         lookup_key = String.to_atom(lookup_key_str) 
 
         fn(bindings) ->
-          Dict.fetch!(bindings, lookup_key)
+          Keyword.fetch!(bindings, lookup_key)
         end
       _ ->
         # Otherwise it's just text
@@ -71,9 +81,11 @@ defmodule Spacesuit.Router do
     end
   end
 
-  def build(route_map, bindings) do
-    uri = Dict.get(route_map, :uri)
-    map = Dict.get(route_map, :map)
+  def build(method, route_map, bindings) do
+    verb = method |> String.upcase |> String.to_atom
+
+    uri = Map.get(route_map, :uri)
+    map = Map.get(route_map, verb)
 
     path = map
       |> Enum.map(fn(x) -> x.(bindings) end)
@@ -82,7 +94,7 @@ defmodule Spacesuit.Router do
     URI.to_string(%{ uri | path: path })
   end
 
-  def compile(route_map) do
+  def compile(verb, route_map) do
     uri = URI.parse(to_string(route_map))
 
     map = if uri.path != nil do
@@ -92,6 +104,6 @@ defmodule Spacesuit.Router do
       [] 
     end
 
-    %{ map: map, uri: uri }
+    Map.put(%{ uri: uri }, verb, map)
   end
 end

@@ -3,15 +3,15 @@ defmodule Spacesuit.ProxyHandler do
 
   # Callback from the Cowboy handler
   def init(req, state) do
-    route_name = Dict.get(state, :description, "un-named")
+    route_name = Map.get(state, :description, "un-named")
     Logger.info "Processing '#{route_name}'"
 
-    %{ bindings: bindings } = req
+    %{ bindings: bindings, method: method, headers: headers, peer: peer } = req
 
     # Prepare some things we'll need
-    ups_url = build_upstream_url(state, bindings)
-    method = Map.get(req, :method) |> String.downcase
-    ups_headers = Map.get(req, :headers) |> cowboy_to_hackney(req)
+    ups_url     = build_upstream_url(method, state, bindings)
+    peer        = format_peer(peer)
+    ups_headers = cowboy_to_hackney(headers, peer)
 
     # Make the proxy request
     handle_request(req, ups_url, ups_headers, method)
@@ -45,13 +45,14 @@ defmodule Spacesuit.ProxyHandler do
     end
   end
 
-  # Run the route builder to generate the correct upstream URL
-  def build_upstream_url(state, bindings) do
+  # Run the route builder to generate the correct upstream URL based
+  # on the bindings and the request method/http verb.
+  def build_upstream_url(method, state, bindings) do
     case bindings do
       [] ->
         state[:destination]
       _ ->
-        Spacesuit.Router.build(state, bindings)
+        Spacesuit.Router.build(method, state, bindings)
     end
   end
 
@@ -75,10 +76,10 @@ defmodule Spacesuit.ProxyHandler do
           "Transfer-Encoding", "transfer-encoding" ])
   end
 
-  # Find the peer from the request and format it into a string
+  # Format the peer from the request into a string that
   # we can pass in the X-Forwarded-For header.
-  def extract_peer(req) do
-    {:ok, {ip, _port}} = Map.fetch(req, :peer)
+  def format_peer(peer) do
+    {ip, _port} = peer
 
     ip
       |> Tuple.to_list
@@ -87,9 +88,7 @@ defmodule Spacesuit.ProxyHandler do
   end
 
   # Convery headers from Cowboy map format to Hackney list format
-  def cowboy_to_hackney(headers, req) do
-    peer = extract_peer(req)
-
+  def cowboy_to_hackney(headers, peer) do
     (headers || %{})
       |> Map.put("X-Forwarded-For", peer)
       |> Map.drop([ "host", "Host" ])

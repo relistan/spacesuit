@@ -37,6 +37,7 @@ defmodule Spacesuit.Mixfile do
       {:hackney, "~> 1.6.3"},
       {:cowboy, github: "extend/cowboy"},
       {:poison, "~> 3.0"},
+      {:joken, "~> 1.4.1"},
       {:excoveralls, "~> 0.6", only: :test}
     ]
   end

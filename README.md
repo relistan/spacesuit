@@ -1,24 +1,40 @@
-# Spacesuit
+Spacesuit
+=========
 
-**TODO: Add description**
+An API gateway written in Elixir, built on top of the Cowboy web server and
+Hackney http client. Supports streaming requests, remapping by hostname, HTTP
+method, and endpoint.
 
-## Installation
+Sample config:
+```
+  ":_" => [ # Match any hostname
+    { "/users/:user_id", %{
+      description: "users to [::1]:9090",
+      GET: "http://[::1]:9090/:user_id", # ipv6 localhost (thanks osx)
+      POST: "http://[::1]:9090/:user_id"
+    }},
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+    {"/users/something/:user_id", %{
+      description: "users/something to [::1]:9090",
+      GET: "http://[::1]:9090/something/:user_id"
+    }},
 
-  1. Add `spacesuit` to your list of dependencies in `mix.exs`:
+    {"/[...]", %{
+      description: "others to hacker news",
+      destination: "https://news.ycombinator.com"
+    }}
+  ]
+```
 
-    ```elixir
-    def deps do
-      [{:spacesuit, "~> 0.1.0"}]
-    end
-    ```
+Installation
+------------
 
-  2. Ensure `spacesuit` is started before your application:
+You need to have Elixir and the BEAM VM installed. On OSX the easiest way to do
+that is to `brew install elixir`. Next you need to install dependencies, with
+`mix deps.get`. Now you're ready to roll.
 
-    ```elixir
-    def application do
-      [applications: [:spacesuit]]
-    end
-    ```
+Running
+-------
 
+Spacesuit listens on 8080 and waits for requests. You can start it up by running
+`iex -S mix run`

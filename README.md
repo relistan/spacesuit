@@ -38,3 +38,11 @@ Running
 
 Spacesuit listens on 8080 and waits for requests. You can start it up by running
 `iex -S mix run`
+
+Coverage
+--------
+
+You can view the coverage output in test mode by running:
+```
+MIX_ENV=test mix coveralls.html
+```

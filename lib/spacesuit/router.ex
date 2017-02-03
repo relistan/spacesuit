@@ -1,35 +1,10 @@
 defmodule Spacesuit.Router do
   require Logger
 
-  @routes_file "routes.yaml"
-
   @http_verbs [:GET, :POST, :PUT, :PATCH, :DELETE]
 
   def load_routes do
-    [routes] = :yamerl_constr.file(@routes_file)
-    # Let's validate what we got and at least fail to start if it's busted
-#    if !valid_routes?(routes) do
-#      raise "Invalid routes! #{inspect(routes)}"
-#    end
-    transform_routes(routes)
-  end
-
-  def valid_routes?(routes) do
-    try do
-      Enum.all?(routes, fn(r) ->
-        {_host, entries} = r
-        Enum.all?(entries, fn(e) ->
-          {_route, items} = e
-          List.keymember?(items, 'description', 0) && (
-            List.keymember?(items, 'map', 0) || List.keymember?(items, 'destination', 0)
-          )
-        end)
-      end)
-    rescue
-      e in MatchError ->
-        Logger.error "Bad routes! Cannot parse structure: #{e}"
-        false
-    end
+    Application.get_env(:spacesuit, :routes) |> transform_routes
   end
 
   def transform_routes(source) do
@@ -41,11 +16,10 @@ defmodule Spacesuit.Router do
   def transform_one_route(source) do
     {route, opts} = source
 
-    atomized_opts = atomize_opts(opts)
-
+    # Loop over the map, replacing values with compiled routes
     compiled_opts =
-      @http_verbs |> List.foldl(%{}, fn(verb, memo) ->
-        case Map.fetch(atomized_opts, verb) do
+      @http_verbs |> List.foldl(opts, fn(verb, memo) ->
+        case Map.fetch(opts, verb) do
           {:ok, route_map} ->
             Map.merge(memo, compile(verb, route_map))
 
@@ -54,17 +28,7 @@ defmodule Spacesuit.Router do
         end
       end)
 
-    handler_opts = Map.merge(atomized_opts, compiled_opts)
-
-    {route, Spacesuit.ProxyHandler, handler_opts}
-  end
-
-  # Turn nasty structure into a map with atoms
-  def atomize_opts(opts) do
-    opts |> List.foldl(%{},
-      fn({k, v}, memo) ->
-        Map.put(memo, String.to_atom(to_string(k)), v)
-      end)
+    {route, Spacesuit.ProxyHandler, compiled_opts}
   end
 
   # Returns a function that will handle the route substitution

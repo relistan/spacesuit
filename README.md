@@ -6,7 +6,7 @@ Hackney http client. Supports streaming requests, remapping by hostname, HTTP
 method, and endpoint.
 
 Sample config:
-```
+```ruby
   ":_" => [ # Match any hostname
     { "/users/:user_id", %{
       description: "users to [::1]:9090",

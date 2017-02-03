@@ -3,33 +3,26 @@ defmodule SpacesuitRouterTest do
   doctest Spacesuit.Router
 
   setup_all do
-    routes = [{':_',
-         [{'/users/:user_id',
-            [
-              {'description', 'users to localhost'},
-              {'destination', 'http://localhost:9090'},
-              {'GET', 'http://localhost:9090/:user_id'},
-              {'POST', 'http://example.com:9090/:user_id'},
-            ]},
+    routes =
+        %{':_' =>
+          [{'/users/:user_id',
+            %{
+              description: 'users to localhost',
+              destination: 'http://localhost:9090',
+              GET: 'http://localhost:9090/:user_id',
+              POST: 'http://example.com:9090/:user_id',
+            }},
           {'/[...]',
-            [
-              {'description', 'others to hacker news'},
-              {'destination', 'https://news.ycombinator.com'},
-              {'GET', []}
-             ]}
-          ]}]
+            %{
+              description: 'others to hacker news',
+              destination: 'https://news.ycombinator.com',
+              GET: []
+             }
+          }
+          ]
+        }
 
     {:ok, routes: routes}
-  end
-
-  test "that it validates well-formed routes", state do
-    assert Spacesuit.Router.valid_routes?(state[:routes]) == true
-  end
-
-  test "that it invalidates malformed routes", state do
-    [{ host, [{ route, [ entry | _ ]} | _ ] } | _ ] = state[:routes]
-    new_routes = [{ host, [{ route, [ entry ]} ] } ]
-    assert Spacesuit.Router.valid_routes?(new_routes) == false
   end
 
   test "that transform_routes does not raise errors", state do
@@ -61,12 +54,9 @@ defmodule SpacesuitRouterTest do
   end
 
   test "transforming one route", state do
-    [
-      {
-        ':_',
-           [ route | _ ]
-      }
-    ] = state[:routes]
+    %{
+      ':_' => [ route | _ ]
+    } = state[:routes]
 
     output = Spacesuit.Router.transform_one_route(route)
     { _route, _handler, handler_opts } = output

@@ -18,7 +18,7 @@ defmodule Spacesuit.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [
-      applications: [:logger, :cowboy, :hackney],
+      applications: [:logger, :cowboy, :hackney, :crypto, :jose],
       mod: { Spacesuit, [] }
     ]
   end

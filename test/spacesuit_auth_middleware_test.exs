@@ -8,6 +8,10 @@ defmodule SpacesuitAuthMiddlewareTest do
     {:ok, token: token}
   end
 
+  test "passes through OK when there is no auth header" do
+    assert {:ok, %{}, %{}} = Spacesuit.AuthMiddleware.execute(%{}, %{})   
+  end
+
   test "'authorization' header is stripped when present" do
     req = %{ headers: %{ "authorization" => "sometoken" }}
     env = %{}

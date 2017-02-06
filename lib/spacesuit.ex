@@ -1,7 +1,13 @@
+require Logger
+
 defmodule Spacesuit do
   use Application
+  
+  @http_port 8080
 
   def start(_type, _args) do
+    Logger.info "Spacesuit starting up on :#{@http_port}"
+
     dispatch = Spacesuit.Router.load_routes |> :cowboy_router.compile
 
 #    dispatch = :cowboy_router.compile([
@@ -12,7 +18,7 @@ defmodule Spacesuit do
 #    ])
 
     {:ok, _} = :cowboy.start_clear(
-        :http, 100, [port: 8080],
+        :http, 100, [port: @http_port],
         %{
            env: %{
             dispatch: dispatch

@@ -10,13 +10,6 @@ defmodule Spacesuit do
 
     dispatch = Spacesuit.Router.load_routes |> :cowboy_router.compile
 
-#    dispatch = :cowboy_router.compile([
-#      {:_, [
-#          {"/users/:user_id/[...]", Spacesuit.ProxyHandler, [destination: "https://google.com/"]},
-#          {"/[...]", Spacesuit.ProxyHandler, [destination: "https://news.ycombinator.com"]}
-#      ]}
-#    ])
-
     {:ok, _} = :cowboy.start_clear(
         :http, 100, [port: @http_port],
         %{

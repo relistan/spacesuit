@@ -52,6 +52,8 @@ defmodule Spacesuit.AuthMiddleware do
     result =
         token
         |> Joken.token
+        # is it possible to verify against alternatives here?
+        # that would make our lives easier if we want to rotate the secret / switch the algorithm
         |> Joken.with_signer(Joken.hs384(@jwt_secret))
         |> Joken.verify
 

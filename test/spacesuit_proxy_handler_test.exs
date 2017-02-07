@@ -24,7 +24,10 @@ defmodule SpacesuitProxyHandlerTest do
 
   test "converting headers to Hackney format" do
     headers = %{
-      "user-agent" => " Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:50.0) Gecko/20100101 Firefox/50.0",
+      "user-agent" => Enum.join([
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:50.0) ",
+        "Gecko/20100101 Firefox/50.0"
+      ], ""),
       "accept-language" => "en-US,en;q=0.5",
       "Host" => " localhost:9090"
     }
@@ -57,5 +60,23 @@ defmodule SpacesuitProxyHandlerTest do
     )
     
     assert ^url = "http://elsewhere.example.com/foo"
+  end
+
+  test "request_upstream passes the body when there is one" do
+    result = Spacesuit.ProxyHandler.request_upstream(
+      "get", "http://example.com",
+      [{"Content-Type", "html"}], %{has_body: true, body: "test body"}
+    )
+
+    assert {:ok, true} = result
+  end
+
+  test "request_upstream skips the body when there isn't one" do
+    result = Spacesuit.ProxyHandler.request_upstream(
+      "get", "http://example.com",
+      [{"Content-Type", "html"}], %{has_body: false}
+    )
+
+    assert {:ok, false} = result
   end
 end

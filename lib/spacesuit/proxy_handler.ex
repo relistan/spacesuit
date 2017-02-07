@@ -1,6 +1,8 @@
 defmodule Spacesuit.ProxyHandler do
   require Logger
 
+  @http_client Application.get_env(:spacesuit, :http_client)
+
   # Callback from the Cowboy handler
   def init(req, state) do
     route_name = Map.get(state, :description, "un-named")
@@ -57,15 +59,15 @@ defmodule Spacesuit.ProxyHandler do
   end
 
   # Make the request to the destination using Hackney
-  defp request_upstream(method, url, ups_headers, downstream) do
+  def request_upstream(method, url, ups_headers, downstream) do
     method = String.downcase(method)
 
     case Map.fetch(downstream, :has_body) do
       {:ok, true}  ->
         # This reads the whole incoming body into RAM. TODO see if we can not do that.
-        :hackney.request(method, url, ups_headers, Map.fetch(downstream, :body), [])
+        @http_client.request(method, url, ups_headers, Map.get(downstream, :body), [])
       {:ok, false} ->
-        :hackney.request(method, url, ups_headers, [], [])
+        @http_client.request(method, url, ups_headers, [], [])
     end
   end
 
@@ -99,7 +101,7 @@ defmodule Spacesuit.ProxyHandler do
 
   # Copy data from one connection to the other until there is no more
   defp stream(upstream, downstream) do
-    case :hackney.stream_body(upstream) do
+    case @http_client.stream_body(upstream) do
       {:ok, data} ->
         :ok = :cowboy_req.stream_body(data, :nofin, downstream)
         stream(upstream, downstream)

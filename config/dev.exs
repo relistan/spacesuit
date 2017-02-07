@@ -2,6 +2,8 @@ use Mix.Config
 
 config :spacesuit, jwt_secret: "secret"
 
+config :spacesuit, http_client: Spacesuit.HttpClient.Hackney
+
 # Set up routes for Spacesuit. These are keyed by hostname matching
 # according to the rules defined by Cowboy:
 # https://ninenines.eu/docs/en/cowboy/1.0/guide/routing/

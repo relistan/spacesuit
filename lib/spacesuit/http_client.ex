@@ -18,14 +18,33 @@ end
 defmodule Spacesuit.HttpClient.Mock do
   @behaviour HttpClient
 
+  # Implementation only matches expected params
   def request(_get, _url, _headers, "test body", _pool) do
     {:ok, true}
   end
 
+  # Implementation only matches expected params
   def request(_get, _url, _headers, [], _pool) do
     {:ok, false}
   end
 
-  def stream_body(_body) do
+  def stream_body(:done) do
+    :done
   end
+
+  def stream_body(:error) do
+    {:error, "testing: uh-oh"}
+  end
+
+  def stream_body(_body) do
+    # TODO figure out a better way to keep state here to make sure we
+    # trigger all the conditions all the time
+    { result, _ } =
+      [:done, {:ok, "blank"}]
+        |> Enum.shuffle
+        |> List.pop_at(0)
+
+    result
+  end
+
 end

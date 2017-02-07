@@ -1,8 +1,10 @@
 use Mix.Config
 
-config :spacesuit, jwt_secret: "secret"
-
 config :spacesuit, http_client: Spacesuit.HttpClient.Hackney
+config :spacesuit, http_server: Spacesuit.HttpServer.Cowboy
+
+# The secret used in validating JWT HMAC signatures
+config :spacesuit, jwt_secret: "secret"
 
 # Set up routes for Spacesuit. These are keyed by hostname matching
 # according to the rules defined by Cowboy:

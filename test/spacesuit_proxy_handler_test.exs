@@ -79,4 +79,16 @@ defmodule SpacesuitProxyHandlerTest do
 
     assert {:ok, false} = result
   end
+
+  test "stream calls complete properly" do
+    assert :ok = Spacesuit.ProxyHandler.stream(:done, nil)
+  end
+
+  test "stream calls handle errors" do
+    assert :ok = Spacesuit.ProxyHandler.stream(:error, nil)
+  end
+
+  test "stream recurses" do
+    assert :ok =  Spacesuit.ProxyHandler.stream(nil, nil)
+  end
 end

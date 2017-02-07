@@ -2,6 +2,7 @@ defmodule Spacesuit.ProxyHandler do
   require Logger
 
   @http_client Application.get_env(:spacesuit, :http_client)
+  @http_server Application.get_env(:spacesuit, :http_server)
 
   # Callback from the Cowboy handler
   def init(req, state) do
@@ -27,7 +28,7 @@ defmodule Spacesuit.ProxyHandler do
         down_headers = headers |> hackney_to_cowboy
         # This always does a chunked reply, which is a shame because we
         # usually have the content-length. TODO figure this out.
-        downstream = :cowboy_req.stream_reply(status, down_headers, req)
+        downstream = @http_server.stream_reply(status, down_headers, req)
         stream(upstream, downstream)
 
       {:error, :econnrefused} ->
@@ -100,18 +101,18 @@ defmodule Spacesuit.ProxyHandler do
   end
 
   # Copy data from one connection to the other until there is no more
-  defp stream(upstream, downstream) do
+  def stream(upstream, downstream) do
     case @http_client.stream_body(upstream) do
       {:ok, data} ->
-        :ok = :cowboy_req.stream_body(data, :nofin, downstream)
+        :ok = @http_server.stream_body(data, :nofin, downstream)
         stream(upstream, downstream)
       :done -> 
-        :ok = :cowboy_req.stream_body(<<>>, :fin, downstream)
+        :ok = @http_server.stream_body(<<>>, :fin, downstream)
         :ok
       {:error, reason} ->
         Logger.error "Error in stream/2: #{reason}"
-      _ ->
-        Logger.error "Unexpected non-match in stream/2!"
+      bad ->
+        Logger.error "Unexpected non-match in stream/2! (#{inspect(bad)})"
     end
   end
 
@@ -121,7 +122,7 @@ defmodule Spacesuit.ProxyHandler do
     msg = Spacesuit.ApiMessage.encode(
       %Spacesuit.ApiMessage{status: "error", message: message}
     )
-    :cowboy_req.reply(code, %{}, msg, req)
+    @http_server.reply(code, %{}, msg, req)
   end
 
   def terminate(_reason, _downstream, _state), do: :ok

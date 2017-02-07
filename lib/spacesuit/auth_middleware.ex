@@ -11,7 +11,7 @@ defmodule Spacesuit.AuthMiddleware do
 
       "magic!" ->
         Logger.warn "Unauthorized request"
-        reply(req, 401, "Unauthorized")
+        reply(req, 401, "UNAUTHORIZED")
         {:halt, req}
 
       "Bearer " <> token ->
@@ -28,9 +28,9 @@ defmodule Spacesuit.AuthMiddleware do
     %{ req | headers: Map.delete(req[:headers], "authorization") }
   end
 
-  defp reply(req, code, message) do
+  defp reply(req, code, error) do
     msg = Spacesuit.ApiMessage.encode(
-      %Spacesuit.ApiMessage{status: "error", message: message}
+      %Spacesuit.ApiMessage{errorCode: error}
     )
     :cowboy_req.reply(code, %{}, msg, req)
   end
@@ -43,7 +43,7 @@ defmodule Spacesuit.AuthMiddleware do
       # TODO call session service
       {:ok, strip_auth(req), env}
     else
-      reply(req, 401, "Bad Authentication Token")
+      reply(req, 401, "INVALID_TOKEN")
       {:halt, req}
     end
   end

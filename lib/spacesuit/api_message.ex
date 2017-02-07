@@ -5,7 +5,7 @@
 # Just does JSON for now
 defmodule Spacesuit.ApiMessage do
   @derive [Poison.Encoder]
-  defstruct [:status, :message]
+  defstruct [:errorCode, :errorMessage]
 
   def encode(api_message) do
     Poison.encode!(api_message)

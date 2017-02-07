@@ -29,16 +29,17 @@ defmodule Spacesuit.ProxyHandler do
         stream(upstream, downstream)
 
       {:error, :econnrefused} ->
-        error_reply(req, 503, "Service Unavailable - Connection refused")
+        error_reply(req, 503, "SERVICE_UNAVAILABLE", "Connection refused")
 
       {:error, :closed} ->
-        error_reply(req, 502, "Bad Gateway - Connection closed")
+        error_reply(req, 502, "BAD_GATEWAY", "Connection closed")
 
       {:error, :timeout} ->
-        error_reply(req, 502, "Bad Gateway - Connection timeout")
+        error_reply(req, 502, "BAD_GATEWAY", "Connection timeout")
 
       {:error, :bad_request} ->
-        error_reply(req, 400, "Bad Request")
+        # What is this doing, the response for any bad request should be streamed through
+        error_reply(req, 400, "Bad Request", :nil)
 
       unexpected ->
         Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"
@@ -115,9 +116,9 @@ defmodule Spacesuit.ProxyHandler do
 
   # Send messages back to Cowboy, encoded in the format used
   # by the API
-  def error_reply(req, code, message) do
+  def error_reply(req, code, error, message) do
     msg = Spacesuit.ApiMessage.encode(
-      %Spacesuit.ApiMessage{status: "error", message: message}
+      %Spacesuit.ApiMessage{errorCode: error, errorMessage: message}
     )
     :cowboy_req.reply(code, %{}, msg, req)
   end

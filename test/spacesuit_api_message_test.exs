@@ -3,13 +3,13 @@ defmodule SpacesuitApiMessageTest do
   doctest Spacesuit.ApiMessage
 
   test "encodes messages properly" do
-    msg = Spacesuit.ApiMessage.encode(%Spacesuit.ApiMessage{status: "error", message: "message"})
-    assert "{\"status\":" <> _ = msg
+    msg = Spacesuit.ApiMessage.encode(%Spacesuit.ApiMessage{errorCode: "error", errorMessage: "message"})
+    assert msg == "{\"errorMessage\":\"message\",\"errorCode\":\"error\"}"
   end
 
   test "decodes messages properly" do
-    msg = Spacesuit.ApiMessage.decode("{\"status\":\"error\",\"message\":\"message\"}")
-    assert msg.status == "error"
-    assert msg.message == "message"
+    msg = Spacesuit.ApiMessage.decode("{\"errorCode\":\"error\",\"errorMessage\":\"message\"}")
+    assert msg.errorCode == "error"
+    assert msg.errorMessage == "message"
   end
 end

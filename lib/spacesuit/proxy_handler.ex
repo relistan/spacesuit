@@ -1,10 +1,12 @@
 defmodule Spacesuit.ProxyHandler do
   require Logger
+  use Elixometer
 
   @http_client Application.get_env(:spacesuit, :http_client)
   @http_server Application.get_env(:spacesuit, :http_server)
 
   # Callback from the Cowboy handler
+  @timed(key: "timed.proxyHandler-handle", units: :millisecond)
   def init(req, state) do
     route_name = Map.get(state, :description, "un-named")
     Logger.info "Processing '#{route_name}'"
@@ -77,8 +79,7 @@ defmodule Spacesuit.ProxyHandler do
   def hackney_to_cowboy(headers) do
     headers 
       |> List.foldl(%{}, fn({k,v}, memo) -> Map.put(memo, k, v) end)
-      |> Map.drop([ "Date", "date", "Content-Length", "content-length",
-          "Transfer-Encoding", "transfer-encoding" ])
+      |> Map.drop([ "Date", "date" ])
   end
 
   # Format the peer from the request into a string that

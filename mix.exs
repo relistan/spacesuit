@@ -18,7 +18,11 @@ defmodule Spacesuit.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [
-      applications: [:logger, :cowboy, :hackney, :crypto, :jose],
+      applications: [
+        :logger, :cowboy, :hackney, :crypto,
+        :jose, :exometer_newrelic_reporter,
+        :elixometer
+      ],
       mod: { Spacesuit, [] }
     ]
   end
@@ -36,9 +40,11 @@ defmodule Spacesuit.Mixfile do
     [
       {:hackney, "~> 1.6.3"},
       {:cowboy, github: "extend/cowboy"},
-      {:poison, "~> 3.0"},
+      {:poison, "~> 3.0", override: true},
       {:joken, "~> 1.4.1"},
-      {:excoveralls, "~> 0.6", only: :test}
+      {:excoveralls, "~> 0.6", only: :test},
+      {:elixometer, github: "pinterest/elixometer"},
+      {:exometer_newrelic_reporter, github: "nitro/exometer_newrelic_reporter"}
     ]
   end
 

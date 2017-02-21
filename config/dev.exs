@@ -28,8 +28,8 @@ config :spacesuit, routes: %{
     }},
 
     {"/[...]", %{
-      description: "others to hacker news",
-      destination: "https://news.ycombinator.com"
+      description: "others to apple",
+      destination: "https://www.apple.com"
     }}
   ]
 

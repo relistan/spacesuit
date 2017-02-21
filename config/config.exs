@@ -21,6 +21,24 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
+# If we have a NEWRELIC_LICENSE_KEY, we'll use a New Relic reporter
+if System.get_env("NEW_RELIC_LICENSE_KEY") != "" do
+  config :exometer_core, report: [
+    reporters: ["Elixir.Exometer.NewrelicReporter":
+      [
+        application_name: "Spacesuit #{System.get_env("MIX_ENV") || "dev"}",
+        license_key: System.get_env("NEW_RELIC_LICENSE_KEY"),
+        synthesize_metrics: %{
+          "proxyHandler-handle" => "HttpDispatcher"
+        }
+      ]
+    ]
+  ]
+
+  config :elixometer, reporter: :"Elixir.Exometer.NewrelicReporter",
+    update_frequency: 60_000
+end
+
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.

@@ -12,7 +12,7 @@
   "exometer": {:git, "https://github.com/Feuerlabs/exometer.git", "7a7bd8d2b52de4d90f65aa3f6044b0e988319b9e", []},
   "exometer_collectd": {:git, "git://github.com/Feuerlabs/exometer_collectd.git", "a1968f534375adbd775e7cce6694db613a5468c0", [tag: "1.0.1"]},
   "exometer_core": {:hex, :exometer_core, "1.4.0", "a546ccd38be910de6ea75ea95b724b6b2db513c26f02e30919b25eb19651815a", [:rebar3], [{:edown, "0.7.0", [hex: :edown, optional: false]}, {:folsom, "0.8.3", [hex: :folsom, optional: false]}, {:lager, "3.0.2", [hex: :lager, optional: false]}, {:parse_trans, "2.9.0", [hex: :parse_trans, optional: false]}, {:setup, "1.7.0", [hex: :setup, optional: false]}]},
-  "exometer_newrelic_reporter": {:git, "https://github.com/nitro/exometer_newrelic_reporter.git", "ad390976ec9d272212365eb35c7d2a4dd676eb66", []},
+  "exometer_newrelic_reporter": {:git, "https://github.com/nitro/exometer_newrelic_reporter.git", "b6ebd2ebe4ec127996196e37b8077e59d5647db5", []},
   "folsom": {:hex, :folsom, "0.8.3", "71cff146152fa95e6092e62119f9dc96888660111e7b61853c8fdcf80598a4e0", [:rebar3], [{:bear, "0.8.3", [hex: :bear, optional: false]}]},
   "goldrush": {:hex, :goldrush, "0.1.9", "f06e5d5f1277da5c413e84d5a2924174182fb108dabb39d5ec548b27424cd106", [:rebar3], []},
   "hackney": {:hex, :hackney, "1.6.3", "d489d7ca2d4323e307bedc4bfe684323a7bf773ecfd77938f3ee8074e488e140", [:mix, :rebar3], [{:certifi, "0.7.0", [hex: :certifi, optional: false]}, {:idna, "1.2.0", [hex: :idna, optional: false]}, {:metrics, "1.0.1", [hex: :metrics, optional: false]}, {:mimerl, "1.0.2", [hex: :mimerl, optional: false]}, {:ssl_verify_fun, "1.1.1", [hex: :ssl_verify_fun, optional: false]}]},

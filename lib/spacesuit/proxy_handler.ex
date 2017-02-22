@@ -20,12 +20,12 @@ defmodule Spacesuit.ProxyHandler do
     ups_headers = cowboy_to_hackney(headers, peer)
 
     # Make the proxy request
-    handle_request(req, ups_url, qs, ups_headers, method)
+    handle_request(req, ups_url, ups_headers, method)
     
     {:ok, req, state}
   end
 
-  defp handle_request(req, ups_url, qs, ups_headers, method) do
+  defp handle_request(req, ups_url, ups_headers, method) do
     case request_upstream(method, ups_url, ups_headers, req) do
       {:ok, status, headers, upstream} ->
         down_headers = headers |> hackney_to_cowboy

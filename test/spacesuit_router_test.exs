@@ -33,24 +33,27 @@ defmodule SpacesuitRouterTest do
     uri_str = "http://example.com/users/:user_id"
 
     %{ GET: route_map, uri: uri } = Spacesuit.Router.compile(:GET, uri_str)
-    assert Enum.all?(route_map, fn(x) -> is_function(x, 1) end)
+    assert Enum.all?(route_map, fn(x) -> is_function(x, 2) end)
     assert URI.to_string(uri) == uri_str
   end
 
   test "that build() can process the output from compile" do
-    uri_str = "http://example.com/users/:user_id"
+    uri_str = "http://example.com/users/:user_id[...]"
     route_map = Spacesuit.Router.compile(:GET, uri_str)
 
-    result = Spacesuit.Router.build("get", "", route_map, [user_id: 123])
-    assert result == "http://example.com/users/123"
+    result = Spacesuit.Router.build("get", "", route_map, [user_id: 123], ["doc"])
+    assert result == "http://example.com/users/123/doc"
   end
 
   test "the right functions are generated for each key" do
     str_output = Spacesuit.Router.func_for_key("generic")
-    assert str_output.(nil) == "generic"
+    assert str_output.(nil, nil) == "generic"
 
     str_output = Spacesuit.Router.func_for_key(":substitution")
-    assert str_output.([substitution: 123]) == 123
+    assert str_output.([substitution: 123], nil) == 123
+
+    str_output = Spacesuit.Router.func_for_key("..]")
+    assert str_output.(nil, ["part1", "part2"]) == "part1/part2"
   end
 
   test "transforming one route", state do

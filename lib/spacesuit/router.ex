@@ -1,7 +1,7 @@
 defmodule Spacesuit.Router do
   require Logger
 
-  @http_verbs [:GET, :POST, :PUT, :PATCH, :DELETE]
+  @http_verbs [:GET, :POST, :PUT, :PATCH, :DELETE, :HEAD]
 
   def load_routes do
     Application.get_env(:spacesuit, :routes) |> transform_routes
@@ -38,23 +38,29 @@ defmodule Spacesuit.Router do
       ":" <> lookup_key_str ->
         lookup_key = String.to_atom(lookup_key_str) 
 
-        fn(bindings) ->
-          Keyword.fetch!(bindings, lookup_key)
+        fn(bindings, _) ->
+          bindings |> Keyword.fetch!(lookup_key)
         end
+
+      "..]" ->
+        fn(_, path_info) ->
+          path_info |> Enum.join("/")
+        end
+           
       _ ->
         # Otherwise it's just text
-        fn(_) -> key end
+        fn(_, _) -> key end
     end
   end
 
-  def build(method, qs, route_map, bindings) do
+  def build(method, qs, route_map, bindings, path_info) do
     verb = method |> String.upcase |> String.to_atom
 
     uri = Map.get(route_map, :uri)
     map = Map.get(route_map, verb)
 
     path = map
-      |> Enum.map(fn(x) -> x.(bindings) end)
+      |> Enum.map(fn(x) -> x.(bindings, path_info) end)
       |> Enum.join("/")
 
     uri
@@ -74,7 +80,7 @@ defmodule Spacesuit.Router do
     uri = URI.parse(to_string(route_map))
 
     map = if uri.path != nil do
-      String.split(uri.path, "/")
+      String.split(uri.path, ["/", "[."])
         |> Enum.map(&func_for_key/1)
     else
       [] 

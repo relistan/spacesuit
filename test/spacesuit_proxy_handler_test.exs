@@ -45,8 +45,9 @@ defmodule SpacesuitProxyHandlerTest do
   end
 
   test "building the upstream url when destination is set and no bindings exist" do
+    req = %{ bindings: [], method: "GET", qs: "", path_info: [] }
     url = Spacesuit.ProxyHandler.build_upstream_url(
-      "GET", "", [destination: "the moon", map: %{}], []
+      req, [destination: "the moon", map: %{}]
     )
 
     assert ^url = "the moon"
@@ -55,9 +56,8 @@ defmodule SpacesuitProxyHandlerTest do
   test "building the upstream url when bindings exist" do
     route_map = Spacesuit.Router.compile(:GET, "http://elsewhere.example.com/:asdf")
 
-    url = Spacesuit.ProxyHandler.build_upstream_url(
-      "GET", "", route_map, [asdf: "foo"]
-    )
+    req = %{ bindings: [asdf: "foo"], method: "GET", qs: "", path_info: [] }
+    url = Spacesuit.ProxyHandler.build_upstream_url(req, route_map)
     
     assert ^url = "http://elsewhere.example.com/foo"
   end
@@ -65,9 +65,11 @@ defmodule SpacesuitProxyHandlerTest do
   test "building the upstream url when there is a query string" do
     route_map = Spacesuit.Router.compile(:GET, "http://elsewhere.example.com/:asdf")
 
-    url = Spacesuit.ProxyHandler.build_upstream_url(
-      "GET", "shakespeare=literature", route_map, [asdf: "foo"]
-    )
+    req = %{
+      bindings: [asdf: "foo"], method: "GET",
+      qs: "shakespeare=literature", path_info: []
+    }
+    url = Spacesuit.ProxyHandler.build_upstream_url(req, route_map)
 
     assert ^url = "http://elsewhere.example.com/foo?shakespeare=literature"
   end

@@ -11,11 +11,10 @@ defmodule Spacesuit.ProxyHandler do
     route_name = Map.get(state, :description, "un-named")
     Logger.info "Processing '#{route_name}'"
 
-    %{ bindings: bindings, method: method,
-       headers: headers, peer: peer, qs: qs } = req
+    %{ method: method, headers: headers, peer: peer } = req
 
     # Prepare some things we'll need
-    ups_url     = build_upstream_url(method, qs, state, bindings)
+    ups_url     = build_upstream_url(req, state)
     peer        = format_peer(peer)
     ups_headers = cowboy_to_hackney(headers, peer)
 
@@ -53,12 +52,15 @@ defmodule Spacesuit.ProxyHandler do
 
   # Run the route builder to generate the correct upstream URL based
   # on the bindings and the request method/http verb.
-  def build_upstream_url(method, qs, state, bindings) do
+  def build_upstream_url(req, state) do
+    %{ bindings: bindings, method: method,
+       qs: qs, path_info: path_info } = req
+
     case bindings do
       [] ->
         state[:destination]
       _ ->
-        Spacesuit.Router.build(method, qs, state, bindings)
+        Spacesuit.Router.build(method, qs, state, bindings, path_info)
     end
   end
 

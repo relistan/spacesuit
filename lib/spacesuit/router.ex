@@ -47,7 +47,7 @@ defmodule Spacesuit.Router do
     end
   end
 
-  def build(method, route_map, bindings) do
+  def build(method, qs, route_map, bindings) do
     verb = method |> String.upcase |> String.to_atom
 
     uri = Map.get(route_map, :uri)
@@ -57,7 +57,17 @@ defmodule Spacesuit.Router do
       |> Enum.map(fn(x) -> x.(bindings) end)
       |> Enum.join("/")
 
-    URI.to_string(%{ uri | path: path })
+    uri
+      |> Map.merge(path_and_query(path, qs))
+      |> URI.to_string
+  end
+
+  defp path_and_query(path, qs) when byte_size(qs) < 1 do
+    %{ path: path }
+  end
+
+  defp path_and_query(path, qs) do
+    %{ path: path, query: qs }
   end
 
   def compile(verb, route_map) do

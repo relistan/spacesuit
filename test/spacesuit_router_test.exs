@@ -41,7 +41,7 @@ defmodule SpacesuitRouterTest do
     uri_str = "http://example.com/users/:user_id"
     route_map = Spacesuit.Router.compile(:GET, uri_str)
 
-    result = Spacesuit.Router.build("get", route_map, [user_id: 123])
+    result = Spacesuit.Router.build("get", "", route_map, [user_id: 123])
     assert result == "http://example.com/users/123"
   end
 

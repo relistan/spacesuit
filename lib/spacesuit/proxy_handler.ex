@@ -24,6 +24,7 @@ defmodule Spacesuit.ProxyHandler do
     {:ok, req, state}
   end
 
+  @timed(key: "timed.proxyHandler-proxyRequest", units: :millisecond)
   defp handle_request(req, ups_url, ups_headers, method) do
     case request_upstream(method, ups_url, ups_headers, req) do
       {:ok, status, headers, upstream} ->
@@ -56,11 +57,12 @@ defmodule Spacesuit.ProxyHandler do
     %{ bindings: bindings, method: method,
        qs: qs, path_info: path_info } = req
 
-    case bindings do
-      [] ->
-        state[:destination]
-      _ ->
-        Spacesuit.Router.build(method, qs, state, bindings, path_info)
+    case [bindings, path_info] do
+      [nil, nil] -> state[:destination]
+
+      [_, _] -> Spacesuit.Router.build(method, qs, state, bindings, path_info)
+
+      _ -> :error
     end
   end
 

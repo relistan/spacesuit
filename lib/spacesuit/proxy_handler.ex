@@ -57,12 +57,10 @@ defmodule Spacesuit.ProxyHandler do
     %{ bindings: bindings, method: method,
        qs: qs, path_info: path_info } = req
 
-    case [bindings, path_info] do
-      [nil, nil] -> state[:destination]
+    case Map.fetch(state, :destination) do
+      {:ok, destination} -> destination
 
-      [_, _] -> Spacesuit.Router.build(method, qs, state, bindings, path_info)
-
-      _ -> :error
+      :error -> Spacesuit.Router.build(method, qs, state, bindings, path_info)
     end
   end
 

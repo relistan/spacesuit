@@ -43,6 +43,14 @@ defmodule SpacesuitRouterTest do
     assert result == "http://example.com/users/123/doc"
   end
 
+  test "that build() can process the output from compile when only a path_map exists" do
+    uri_str = "http://example.com/users/[...]"
+    route_map = Spacesuit.Router.compile(:GET, uri_str)
+
+    result = Spacesuit.Router.build("get", "", route_map, [], ["123"])
+    assert result == "http://example.com/users/123"
+  end
+
   test "the right functions are generated for each key" do
     str_output = Spacesuit.Router.func_for_key("generic")
     assert str_output.(nil, nil) == "generic"

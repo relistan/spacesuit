@@ -42,13 +42,14 @@ defmodule Spacesuit.Router do
           bindings |> Keyword.fetch!(lookup_key)
         end
 
+      # Remainder wildcard matches are built from path_info
       "..]" ->
         fn(_, path_info) ->
           path_info |> Enum.join("/")
         end
            
+      # Otherwise it's just text
       _ ->
-        # Otherwise it's just text
         fn(_, _) -> key end
     end
   end
@@ -80,7 +81,9 @@ defmodule Spacesuit.Router do
     uri = URI.parse(to_string(route_map))
 
     map = if uri.path != nil do
-      String.split(uri.path, ["/", "[."])
+      # Order of split strings is important so we end up
+      # with output like "/part1/part2" vs "/part1//part2"
+      String.split(uri.path, ["/[.", "[.", "/"])
         |> Enum.map(&func_for_key/1)
     else
       [] 

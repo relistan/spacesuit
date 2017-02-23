@@ -8,7 +8,6 @@ defmodule SpacesuitRouterTest do
           [{'/users/:user_id',
             %{
               description: 'users to localhost',
-              destination: 'http://localhost:9090',
               GET: 'http://localhost:9090/:user_id',
               POST: 'http://example.com:9090/:user_id',
             }},
@@ -16,7 +15,6 @@ defmodule SpacesuitRouterTest do
             %{
               description: 'others to hacker news',
               destination: 'https://news.ycombinator.com',
-              GET: []
              }
           }
           ]

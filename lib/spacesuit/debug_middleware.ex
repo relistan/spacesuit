@@ -5,8 +5,8 @@ defmodule Spacesuit.DebugMiddleware do
   require Logger
 
   def execute(req, env) do
-    Logger.info inspect(req)
-    Logger.info inspect(env)
+    Logger.debug inspect(req)
+    Logger.debug inspect(env)
     {:ok, req, env}
   end
 end

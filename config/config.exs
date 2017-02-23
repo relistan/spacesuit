@@ -21,6 +21,11 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
+# Get rid of the execessive line feeding and level padding in
+# the default Elixir logger.
+config :logger, :console, 
+  format: "$time $metadata[$level] $message\n"
+
 # If we have a NEWRELIC_LICENSE_KEY, we'll use a New Relic reporter
 if System.get_env("NEW_RELIC_LICENSE_KEY") != "" do
   config :exometer_core, report: [

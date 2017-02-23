@@ -16,19 +16,39 @@ defmodule Spacesuit.Router do
   def transform_one_route(source) do
     {route, opts} = source
 
-    # Loop over the map, replacing values with compiled routes
     compiled_opts =
-      @http_verbs |> List.foldl(opts, fn(verb, memo) ->
-        case Map.fetch(opts, verb) do
-          {:ok, route_map} ->
-            Map.merge(memo, compile(verb, route_map))
-
-          :error ->
-            memo # do nothing, we just don't have this verb
-        end
-      end)
+      opts
+      |> process_verbs
+      |> add_all_actions
 
     {route, Spacesuit.ProxyHandler, compiled_opts}
+  end
+
+  # Loop over the map, replacing values with compiled routes
+  defp process_verbs(opts) do
+    @http_verbs |> List.foldl(opts, fn(verb, memo) ->
+      case Map.fetch(opts, verb) do
+        {:ok, route_map} ->
+          Map.merge(memo, compile(verb, route_map))
+
+        :error ->
+          memo # do nothing, we just don't have this verb
+      end
+    end)
+  end
+
+  # If the all_actions key is present, let's add them all.
+  # This lets us specify `all_actions: route_map` in the config
+  # instead of writing a line for each and every HTTP verb.
+  defp add_all_actions(opts) do
+    case Map.fetch(opts, :all_actions) do
+      {:ok, route_map}->
+        @http_verbs |> List.foldl(opts, fn(verb, memo) ->
+          Map.merge(memo, compile(verb, route_map))
+        end)
+
+      :error -> opts
+    end
   end
 
   # Returns a function that will handle the route substitution

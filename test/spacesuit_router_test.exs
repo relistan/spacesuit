@@ -62,10 +62,24 @@ defmodule SpacesuitRouterTest do
     assert str_output.(nil, ["part1", "part2"]) == "part1/part2"
   end
 
-  test "transforming one route", state do
+  test "transforming one route with http verbs", state do
     %{
       ':_' => [ route | _ ]
     } = state[:routes]
+
+    output = Spacesuit.Router.transform_one_route(route)
+    { _route, _handler, handler_opts } = output
+
+    assert [ _one, _two ] = Map.get(handler_opts, :GET)
+  end
+
+  test "transforming one route with :all_actions" do
+    route = {'/users/:user_id',
+      %{
+        description: 'users to localhost',
+        all_actions: 'http://localhost:9090/:user_id',
+       }
+    }
 
     output = Spacesuit.Router.transform_one_route(route)
     { _route, _handler, handler_opts } = output

@@ -1,6 +1,8 @@
 Spacesuit
 =========
 
+![spacesuit build](https://travis-ci.org/Nitro/spacesuit.svg?branch=master)
+
 An API gateway written in Elixir, built on top of the Cowboy web server and
 Hackney http client. Supports streaming requests, remapping by hostname, HTTP
 method, and endpoint.
@@ -16,7 +18,7 @@ Sample config:
 
     {"/users/something/:user_id", %{
       description: "users/something to [::1]:9090",
-      GET: "http://[::1]:9090/something/:user_id"
+      all_actions: "http://[::1]:9090/something/:user_id"
     }},
 
     {"/[...]", %{

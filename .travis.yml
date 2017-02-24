@@ -4,7 +4,7 @@ elixir:
   - 1.4.x
 
 otp_release:
-  - 19
+  - 19.2
 
 sudo: required
 

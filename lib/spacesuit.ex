@@ -17,8 +17,8 @@ defmodule Spacesuit do
             dispatch: dispatch
            },
            middlewares: [
-             #:cowboy_router, Spacesuit.DebugMiddleware, Spacesuit.AuthMiddleware, :cowboy_handler
-             :cowboy_router, Spacesuit.AuthMiddleware, :cowboy_handler
+             :cowboy_router, Spacesuit.DebugMiddleware, Spacesuit.AuthMiddleware, :cowboy_handler
+             #:cowboy_router, Spacesuit.AuthMiddleware, :cowboy_handler
            ]
          }
     )

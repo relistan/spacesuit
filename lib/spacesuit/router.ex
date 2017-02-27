@@ -2,6 +2,7 @@ defmodule Spacesuit.Router do
   require Logger
 
   @http_verbs [:GET, :POST, :PUT, :PATCH, :DELETE, :HEAD]
+  @health_route Application.get_env(:spacesuit, :health_route)
 
   def load_routes do
     Application.get_env(:spacesuit, :routes) |> transform_routes
@@ -9,7 +10,18 @@ defmodule Spacesuit.Router do
 
   def transform_routes(source) do
     Enum.map(source, fn({host, routes}) ->
-      {host, Enum.map(routes, &transform_one_route/1)}
+      compiled_routes = routes
+        |> Enum.map(&transform_one_route/1) 
+
+      # We add a health route to each hostname if configured
+      case @health_route[:enabled] do
+        true -> 
+          health_route = [{[@health_route[:path]], [], Spacesuit.HealthHandler, %{}}]
+          {host, health_route ++ compiled_routes}
+
+        false ->
+          {host, compiled_routes}
+      end
     end)
   end
 

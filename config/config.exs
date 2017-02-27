@@ -44,6 +44,9 @@ if System.get_env("NEW_RELIC_LICENSE_KEY") != "" do
     update_frequency: 60_000
 end
 
+# Health route name
+config :spacesuit, :health_route, %{ path: "/health", enabled: true }
+
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.

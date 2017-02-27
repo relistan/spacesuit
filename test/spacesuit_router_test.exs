@@ -86,4 +86,18 @@ defmodule SpacesuitRouterTest do
 
     assert [ _one, _two ] = Map.get(handler_opts, :GET)
   end
+
+  test "adds health route when configured to", state do
+    assert %{enabled: true} = Application.get_env(:spacesuit, :health_route)
+    [health_route | _] = Spacesuit.Router.transform_routes(state[:routes])
+
+    assert {':_', [{["/health"], [], Spacesuit.HealthHandler, %{}} | _]} = health_route
+  end
+
+  test "does not add health route when configured not to", state do
+    Application.put_env(:spacesuit, :health_route, %{enabled: true, path: "/health"})
+    [health_route | _] = Spacesuit.Router.transform_routes(state[:routes])
+
+    assert {':_', [{["/health"], [], Spacesuit.HealthHandler, %{}} | _]} = health_route
+  end
 end

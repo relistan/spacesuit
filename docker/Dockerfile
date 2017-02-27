@@ -10,4 +10,4 @@ RUN mix compile
 
 EXPOSE 8080
 
-CMD [ "iex", "-S", "mix" ]
+CMD [ "mix", "run", "--no-halt" ]

@@ -2,7 +2,6 @@ defmodule Spacesuit.Router do
   require Logger
 
   @http_verbs [:GET, :POST, :PUT, :PATCH, :DELETE, :HEAD]
-  @health_route Application.get_env(:spacesuit, :health_route)
 
   def load_routes do
     Application.get_env(:spacesuit, :routes) |> transform_routes
@@ -13,10 +12,14 @@ defmodule Spacesuit.Router do
       compiled_routes = routes
         |> Enum.map(&transform_one_route/1) 
 
+      # Look this up every time, but it's in ETS and this isn't
+      # high throughput anyway
+      stored_route = Application.get_env(:spacesuit, :health_route)
+
       # We add a health route to each hostname if configured
-      case @health_route[:enabled] do
+      case stored_route[:enabled] do
         true -> 
-          health_route = [{[@health_route[:path]], [], Spacesuit.HealthHandler, %{}}]
+          health_route = [{[stored_route[:path]], [], Spacesuit.HealthHandler, %{}}]
           {host, health_route ++ compiled_routes}
 
         false ->

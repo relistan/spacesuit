@@ -15,7 +15,7 @@ config :spacesuit, jwt_secret: "secret"
 # end of the list.
 
 config :spacesuit, routes: %{
-  ":_" => [ # Match any hostname
+  "[...]:_" => [ # Match any hostname/port combination
     { "/users/:user_id", %{
       description: "users to [::1]:9090",
       GET: "http://[::1]:9090/:user_id", # ipv6 localhost (thanks osx)

@@ -21,6 +21,9 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
+# Turn off all file logging
+config :logger, backends: [:console]
+
 # Get rid of the execessive line feeding and level padding in
 # the default Elixir logger.
 config :logger, :console, 

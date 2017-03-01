@@ -30,7 +30,7 @@ config :logger, level: String.to_atom(System.get_env("SPACESUIT_LOGGING_LEVEL") 
 config :logger, :console, 
   format: "$time $metadata[$level] $message\n"
 
-# If we have a NEWRELIC_LICENSE_KEY, we'll use a New Relic reporter
+# If we have a NEW_RELIC_LICENSE_KEY, we'll use a New Relic reporter
 if System.get_env("NEW_RELIC_LICENSE_KEY") != "" do
   config :exometer_core, report: [
     reporters: ["Elixir.Exometer.NewrelicReporter":

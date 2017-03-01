@@ -23,6 +23,7 @@ use Mix.Config
 
 # Turn off all file logging
 config :logger, backends: [:console]
+config :logger, level: String.to_atom(System.get_env("SPACESUIT_LOGGING_LEVEL") || "debug")
 
 # Get rid of the execessive line feeding and level padding in
 # the default Elixir logger.

@@ -48,8 +48,11 @@ if System.get_env("NEW_RELIC_LICENSE_KEY") != "" do
     update_frequency: 60_000
 end
 
-# Health route name
+# Health route
 config :spacesuit, :health_route, %{ path: "/health", enabled: true }
+
+# Do we call out to an external session service that can process JWT tokens?
+config :spacesuit, session_service: %{ enabled: false }
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

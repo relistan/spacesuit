@@ -9,7 +9,7 @@ method, and endpoint.
 
 Sample config:
 ```ruby
-  ":_" => [ # Match any hostname
+  "[...]:_" => [ # Match any hostname/port
     { "/users/:user_id", %{
       description: "users to [::1]:9090",
       GET: "http://[::1]:9090/:user_id", # ipv6 localhost (thanks osx)

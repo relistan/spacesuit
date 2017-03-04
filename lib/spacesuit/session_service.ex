@@ -10,6 +10,9 @@ end
 
 defmodule Spacesuit.MockSessionService do
   @behaviour SessionService
+  @moduledoc """
+    Mock session service used in testing the AuthHandler
+  """
 
   def validate_api_token(token) do
     case token do
@@ -60,7 +63,9 @@ defmodule Spacesuit.SessionService do
   end
 
   @doc """
-    Exchange the token for an enriched token from the Session service
+    Exchange the token for an enriched token from the Session service. This
+    expects the body of the response to be the new token. The current token
+    is passed in the Authorization header as a bearer token.
   """
   @spec get_enriched_token(String.t, String.t) :: String.t
   def get_enriched_token(token, url) do
@@ -124,6 +129,7 @@ defmodule Spacesuit.SessionService do
     end
   end
 
+  @spec error_reply(Map.t, String.t, String.t) :: nil
   defp error_reply(req, code, message) do
     msg = Spacesuit.ApiMessage.encode(
       %Spacesuit.ApiMessage{status: "error", message: message}

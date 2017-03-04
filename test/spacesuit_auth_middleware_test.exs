@@ -8,43 +8,64 @@ defmodule SpacesuitAuthMiddlewareTest do
     {:ok, token: token}
   end
 
-  test "passes through OK when there is no auth header" do
-    assert {:ok, %{}, %{}} = Spacesuit.AuthMiddleware.execute(%{}, %{})   
+  describe "handling non-bearer tokens" do
+    test "passes through OK when there is no auth header" do
+      assert {:ok, %{}, %{}} = Spacesuit.AuthMiddleware.execute(%{}, %{})   
+    end
+
+    test "'authorization' header is stripped when present" do
+      req = %{ headers: %{ "authorization" => "sometoken" }}
+      env = %{}
+
+      assert {:ok, %{ headers: %{} }, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
+    end
   end
 
-  test "'authorization' header is stripped when present" do
-    req = %{ headers: %{ "authorization" => "sometoken" }}
-    env = %{}
+  describe "handling bearer tokens" do
+    test "with a valid token", state do
+      req = %{ headers: %{ "authorization" => "Bearer #{state[:token]}" }, pid: self(), streamid: 1, method: "GET" }
+      env = %{}
 
-    assert {:ok, %{ headers: %{} }, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
-  end
+      assert {:ok, %{ headers: _headers }, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
+    end
 
-  test "recognizes unauthorized access" do
-    req = %{ headers: %{ "authorization" => "magic!" }, pid: self(), streamid: 1, method: "GET" }
-    env = %{}
+    test "with valid bearer token and without session service" do
+      Application.put_env(:spacesuit, :session_service, %{ enabled: false })
+      req = %{ headers: %{ "authorization" => "Bearer balloney" }, pid: self(), streamid: 1, method: "GET" }
+      env = %{}
 
-    assert {:halt, ^req} = Spacesuit.AuthMiddleware.execute(req, env)
-  end
+      # Should just pass through unaffected
+      assert {:ok, ^req, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
+    end
 
-  test "recognizes valid tokens", state do
-    assert Spacesuit.AuthMiddleware.valid_api_token?(state[:token]) == true
-  end
+    test "with an invalid token when session service is enabled" do
+      Application.put_env(:spacesuit, :session_service, %{ enabled: true, impl: Spacesuit.MockSessionService })
 
-  test "rejects invalid tokens" do
-    assert Spacesuit.AuthMiddleware.valid_api_token?("junk!") == false
-  end
+      req = %{ headers: %{ "authorization" => "Bearer error" }, pid: self(), streamid: 1, method: "GET" }
+      env = %{}
 
-  test "handling valid bearer token", state do
-    req = %{ headers: %{ "authorization" => "Bearer #{state[:token]}" }, pid: self(), streamid: 1, method: "GET" }
-    env = %{}
+      # Unrecognized, we pass it on as is
+      assert {:stop, ^req, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
+    end
 
-    assert {:ok, %{ headers: _headers }, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
-  end
+   test "with a valid token when session service is enabled" do
+      Application.put_env(:spacesuit, :session_service, %{ enabled: true, impl: Spacesuit.MockSessionService })
 
-  test "handling invalid bearer token" do
-    req = %{ headers: %{ "authorization" => "Bearer balloney" }, pid: self(), streamid: 1, method: "GET" }
-    env = %{}
+      req = %{ headers: %{ "authorization" => "Bearer ok" }, pid: self(), streamid: 1, method: "GET" }
+      env = %{}
 
-    assert {:halt, %{ headers: _headers }} = Spacesuit.AuthMiddleware.execute(req, env)
+      # Unrecognized, we pass it on as is
+      assert {:ok, ^req, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
+    end
+
+   test "with a missing token when session service is enabled" do
+      Application.put_env(:spacesuit, :session_service, %{ enabled: true, impl: Spacesuit.MockSessionService })
+
+      req = %{ headers: %{ "authorization" => "Bearer " }, pid: self(), streamid: 1, method: "GET" }
+      env = %{}
+
+      # Unrecognized, we pass it on as is
+      assert {:ok, ^req, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
+    end
   end
 end

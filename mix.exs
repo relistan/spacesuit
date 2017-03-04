@@ -38,13 +38,17 @@ defmodule Spacesuit.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
+      # All envs
       {:hackney, "~> 1.6.3"},
       {:cowboy, github: "extend/cowboy"},
       {:poison, "~> 3.0", override: true},
       {:joken, "~> 1.4.1"},
-      {:excoveralls, "~> 0.6", only: :test},
       {:elixometer, github: "pinterest/elixometer"},
-      {:exometer_newrelic_reporter, github: "nitro/exometer_newrelic_reporter"}
+      {:exometer_newrelic_reporter, github: "nitro/exometer_newrelic_reporter"},
+
+      # Test only
+      {:excoveralls, "~> 0.6", only: :test},
+      {:mock, "~> 0.1.1", only: :test}
     ]
   end
 

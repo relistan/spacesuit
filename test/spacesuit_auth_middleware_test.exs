@@ -45,7 +45,7 @@ defmodule SpacesuitAuthMiddlewareTest do
       env = %{}
 
       # Unrecognized, we pass it on as is
-      assert {:stop, ^req, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
+      assert {:stop, ^req} = Spacesuit.AuthMiddleware.execute(req, env)
     end
 
    test "with a valid token when session service is enabled" do

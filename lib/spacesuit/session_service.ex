@@ -25,7 +25,7 @@ defmodule Spacesuit.MockSessionService do
   def handle_bearer_token(req, env, token, _url) do
     case token do
       "ok" ->    {:ok, req, env}
-      "error" -> {:stop, req, env}
+      "error" -> {:stop, req}
       _ ->       {:ok, req, env}
     end
   end
@@ -120,12 +120,12 @@ defmodule Spacesuit.SessionService do
       {:error, code, error} ->
         Logger.error("Session-service error: #{error}")
         @http_server.reply(code, %{}, error, req)
-        {:stop, req, env}
+        {:stop, req}
 
       unexpected -> # Otherwise we blow up the request
         Logger.error "Session-service unexpected response: #{inspect(unexpected)}"
         error_reply(req, 401, "Bad Authentication Token")
-        {:stop, req, env}
+        {:stop, req}
     end
   end
 

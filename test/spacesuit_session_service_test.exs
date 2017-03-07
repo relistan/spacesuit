@@ -83,7 +83,7 @@ defmodule SpacesuitSessionServiceTest do
 
       with_mock HTTPoison, [get: fn(_url, _headers, _options) -> response end] do
         result = Spacesuit.SessionService.handle_bearer_token(%{}, %{}, token, "example.com")
-        assert {:stop, %{}, %{}} = result
+        assert {:stop, %{}} = result
       end
     end
   end

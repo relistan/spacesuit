@@ -29,7 +29,7 @@ defmodule SpacesuitAuthMiddlewareTest do
       assert {:ok, %{ headers: _headers }, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
     end
 
-    test "with valid bearer token and without session service" do
+    test "with invalid bearer token and without session service" do
       Application.put_env(:spacesuit, :session_service, %{ enabled: false })
       req = %{ headers: %{ "authorization" => "Bearer balloney" }, pid: self(), streamid: 1, method: "GET" }
       env = %{}

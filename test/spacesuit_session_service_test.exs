@@ -19,7 +19,7 @@ defmodule SpacesuitSessionServiceTest do
     end
 
     test "rejects invalid tokens" do
-      assert {:error, "Invalid signature"} = Spacesuit.SessionService.validate_api_token("junk!")
+      assert {:error, :validation, "Invalid signature"} = Spacesuit.SessionService.validate_api_token("junk!")
     end
   end
 
@@ -39,7 +39,7 @@ defmodule SpacesuitSessionServiceTest do
 
       with_mock HTTPoison, [get: fn(_url, _headers, _options) -> response end] do
         result = Spacesuit.SessionService.get_enriched_token(state[:token], "example.com")
-        assert {:error, 404, "error message"} = result
+        assert {:error, :http, 404, "error message"} = result
       end
     end
 
@@ -49,7 +49,7 @@ defmodule SpacesuitSessionServiceTest do
 
       with_mock HTTPoison, [get: fn(_url, _headers, _options) -> response end] do
         result = Spacesuit.SessionService.get_enriched_token(state[:token], "example.com")
-        assert {:error, 500, _body} = result
+        assert {:error, :http, 500, _body} = result
       end
     end
 
@@ -79,13 +79,21 @@ defmodule SpacesuitSessionServiceTest do
       end
     end
 
-    test "unhappy path returns a :stop request", state do
+    test "invalid token signature returns a :stop request", state do
+      token = "garbage"
+      req = %{ prove_identity: "proof" }
+      result = Spacesuit.SessionService.handle_bearer_token(req, %{}, token, "example.com")
+      assert {:stop, ^req} = result
+    end
+
+    test "bad http response from the session service returns a :stop request", state do
       token = state[:token]
       response = {:ok, %HTTPoison.Response{status_code: 301}}
+      req = %{ prove_identity: "proof" } # We pass this request back as well
 
       with_mock HTTPoison, [get: fn(_url, _headers, _options) -> response end] do
-        result = Spacesuit.SessionService.handle_bearer_token(%{}, %{}, token, "example.com")
-        assert {:stop, %{}} = result
+        result = Spacesuit.SessionService.handle_bearer_token(req, %{}, token, "example.com")
+        assert {:stop, ^req} = result
       end
     end
   end

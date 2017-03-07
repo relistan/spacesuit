@@ -47,6 +47,38 @@ defmodule Spacesuit.SessionService do
   @recv_timeout    500 # How many milliseconds before we timeout call to session-service
 
   @doc """
+    Consume a bearer token, validate it, and then either
+    reject it or pass it on to a session service to be
+    enriched.
+  """
+  def handle_bearer_token(req, env, token, url) do
+  result = with :ok   <- validate_api_token(token),
+      {:ok, enriched} <- get_enriched_token(token, url),
+      {:ok, parsed}   <- parse_response_body(enriched),
+      do: result_with_new_token(req, env, parsed)
+
+    case result do
+      {:ok, _, _} -> # Just pass on the result
+        result
+
+      {:error, type, code, error} ->
+        Logger.error "Session-service #{inspect(type)} error: #{inspect(error)}"
+        @http_server.reply(code, %{}, error, req)
+        {:stop, req}
+
+      {:error, type, error} ->
+        Logger.error "Session-service #{inspect(type)} error: #{inspect(error)}"
+        error_reply(req, 401, "Bad Authentication Token")
+        {:stop, req}
+
+      unexpected -> # Otherwise we blow up the request
+        Logger.error "Session-service error: unexpected response - #{inspect(unexpected)}"
+        error_reply(req, 401, "Bad Authentication Token")
+        {:stop, req}
+    end
+  end
+
+  @doc """
     Do a quick validation on the token provided
   """
   def validate_api_token(token) do
@@ -58,7 +90,7 @@ defmodule Spacesuit.SessionService do
 
     case result.error do
       nil -> :ok
-      error ->   {:error, error}
+      error ->   {:error, :validation, error}
     end
   end
 
@@ -84,13 +116,13 @@ defmodule Spacesuit.SessionService do
           {:ok, body}
 
         {:ok, %HTTPoison.Response{status_code: code, body: body}} when code >= 400 and code <= 499 ->
-          {:error, code, body}
+          {:error, :http, code, body}
           
         {:error, %HTTPoison.Error{reason: reason}} ->
-           {:error, 500, reason}
+           {:error, :http, 500, reason}
 
         unexpected ->
-           {:error, 500, "Unexpected response from #{url}: #{inspect(unexpected)}"}
+           {:error, :http, 500, "Unexpected response from #{url}: #{inspect(unexpected)}"}
       end
     end
   end
@@ -100,7 +132,7 @@ defmodule Spacesuit.SessionService do
     Logger.debug "Parsing response: #{inspect(body)}"
     case Poison.decode(body) do
       {:ok, data} -> Map.fetch(data, "data")
-      error -> error
+      {:error, :parser, error} -> {:error, :parsing, error}
     end
   end
 
@@ -110,36 +142,6 @@ defmodule Spacesuit.SessionService do
       req | headers: Map.put(req[:headers], "authorization", "Bearer #{token}")
     }
     {:ok, new_req, env}
-  end
-
-  @doc """
-    Consume a bearer token, validate it, and then either
-    reject it or pass it on to a session service to be
-    enriched.
-  """
-  def handle_bearer_token(req, env, token, url) do
-  result = with :ok   <- validate_api_token(token),
-      {:ok, enriched} <- get_enriched_token(token, url),
-      {:ok, token}    <- parse_response_body(enriched),
-      do: result_with_new_token(req, env, token)
-
-    case result do
-      {:ok, _, _} -> # Just pass on the result
-        result
-
-      {:error, code, error} ->
-        Logger.error "Session-service error: #{inspect(error)}"
-        @http_server.reply(code, %{}, error, req)
-        {:stop, req}
-
-      {:error, error} ->
-        Logger.error "Session-service error: #{inspect(error)}"
-
-      unexpected -> # Otherwise we blow up the request
-        Logger.error "Session-service unexpected response: #{inspect(unexpected)}"
-        error_reply(req, 401, "Bad Authentication Token")
-        {:stop, req}
-    end
   end
 
   @spec error_reply(Map.t, String.t, String.t) :: nil

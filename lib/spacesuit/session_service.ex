@@ -58,7 +58,7 @@ defmodule Spacesuit.SessionService do
 
     case result.error do
       nil -> :ok
-      _ ->   :error
+      error ->   {:error, error}
     end
   end
 
@@ -95,6 +95,15 @@ defmodule Spacesuit.SessionService do
     end
   end
 
+  @spec parse_response_body(String.t) :: Tuple.t
+  def parse_response_body(body) do
+    Logger.debug "Parsing response: #{inspect(body)}"
+    case Poison.decode(body) do
+      {:ok, data} -> Map.fetch(data, "data")
+      error -> error
+    end
+  end
+
   @spec result_with_new_token(Map.t, Map.t, String.t) :: Tuple.t
   def result_with_new_token(req, env, token) do
     new_req = %{
@@ -109,18 +118,22 @@ defmodule Spacesuit.SessionService do
     enriched.
   """
   def handle_bearer_token(req, env, token, url) do
-    result = with :ok <- validate_api_token(token),
+  result = with :ok   <- validate_api_token(token),
       {:ok, enriched} <- get_enriched_token(token, url),
-      do: result_with_new_token(req, env, enriched)
+      {:ok, token}    <- parse_response_body(enriched),
+      do: result_with_new_token(req, env, token)
 
     case result do
       {:ok, _, _} -> # Just pass on the result
         result
 
       {:error, code, error} ->
-        Logger.error("Session-service error: #{error}")
+        Logger.error "Session-service error: #{inspect(error)}"
         @http_server.reply(code, %{}, error, req)
         {:stop, req}
+
+      {:error, error} ->
+        Logger.error "Session-service error: #{inspect(error)}"
 
       unexpected -> # Otherwise we blow up the request
         Logger.error "Session-service unexpected response: #{inspect(unexpected)}"

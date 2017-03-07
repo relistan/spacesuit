@@ -7,7 +7,8 @@ defmodule SpacesuitSessionServiceTest do
   setup_all do
     token = "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJhY2N0IjoiMSIsImF6cCI6ImthcmwubWF0dGhpYXNAZ29uaXRyby5jb20iLCJkZWxlZ2F0ZSI6IiIsImV4cCI6IjIwMTctMDItMDNUMTU6MDc6MTRaIiwiZmVhdHVyZXMiOlsidGVhbWRvY3MiLCJjb21iaW5lIiwiZXNpZ24iXSwiaWF0IjoiMjAxNy0wMi0wM1QxNDowNzoxNC40MTMyMTg2OTNaIiwianRpIjoiNTU2ZmU1MTgtYTk0Mi00YTQ3LTkyZmMtNWNmNmVkOWY0YWFhIiwicGVybXMiOlsiYWNjb3VudHM6cmVhZCIsImdyb3VwczpyZWFkIiwidXNlcnM6d3JpdGUiXSwic3ViIjoiY3NzcGVyc29uQGdvbml0cm8uY29tIn0.6eWCzu6yHhgzuvUPaNloNl09uUfaN6nqhK1W--TQwtMk29tf5C5SV-hTT2pxnSxe"
 
-    ok_response = {:ok, %HTTPoison.Response{status_code: 200, body: token}}
+    ok_body = Poison.encode!(%{ data: token })
+    ok_response = {:ok, %HTTPoison.Response{status_code: 200, body: ok_body }}
 
     {:ok, token: token, ok_response: ok_response}
   end
@@ -18,7 +19,7 @@ defmodule SpacesuitSessionServiceTest do
     end
 
     test "rejects invalid tokens" do
-      assert Spacesuit.SessionService.validate_api_token("junk!") == :error
+      assert {:error, "Invalid signature"} = Spacesuit.SessionService.validate_api_token("junk!")
     end
   end
 
@@ -28,7 +29,8 @@ defmodule SpacesuitSessionServiceTest do
 
       with_mock HTTPoison, [get: fn(_url, _headers, _options) -> response end] do
         result = Spacesuit.SessionService.get_enriched_token(token, "example.com")
-        assert {:ok, ^token} = result
+        expected_json = Poison.encode!(%{ data: token })
+        assert {:ok, ^expected_json} = result
       end
     end
 

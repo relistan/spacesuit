@@ -63,7 +63,11 @@ defmodule Spacesuit.SessionService do
 
       {:error, type, code, error} ->
         Logger.error "Session-service #{inspect(type)} error: #{inspect(error)}"
-        @http_server.reply(code, %{}, error, req)
+        if is_binary(error) do
+          @http_server.reply(code, %{}, error, req)
+        else
+          error_reply(req, 503, "Upstream error")
+        end
         {:stop, req}
 
       {:error, type, error} ->

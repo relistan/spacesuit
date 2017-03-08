@@ -39,6 +39,11 @@ defmodule Spacesuit.Router do
     {route, Spacesuit.ProxyHandler, compiled_opts}
   end
 
+  # Expose the verbs to the outside
+  def get_http_verbs do
+    @http_verbs
+  end
+
   # Loop over the map, replacing values with compiled routes
   defp process_verbs(opts) do
     @http_verbs |> List.foldl(opts, fn(verb, memo) ->

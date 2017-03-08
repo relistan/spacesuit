@@ -90,12 +90,23 @@ defmodule Spacesuit.SessionService do
         token
         |> Joken.token
         |> Joken.with_signer(Joken.hs384(@jwt_secret))
+        |> Joken.with_validation("exp", &unexpired?/1)
         |> Joken.verify
 
     case result.error do
       nil -> :ok
       error ->   {:error, :validation, error}
     end
+  end
+
+  def unexpired?(exp_time) when is_integer(exp_time) do
+    now = DateTime.utc_now |> DateTime.to_unix 
+    exp_time > now
+  end
+
+  def unexpired?(time) do
+    # If anything else other than Unix epoch time was sent, we say it's expired
+    false
   end
 
   @doc """

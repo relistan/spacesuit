@@ -4,8 +4,18 @@ defmodule SpacesuitSessionServiceTest do
 
   doctest Spacesuit.SessionService
 
+  @jwt_secret Application.get_env(:spacesuit, :jwt_secret)
+
   setup_all do
-    token = "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJhY2N0IjoiMSIsImF6cCI6ImthcmwubWF0dGhpYXNAZ29uaXRyby5jb20iLCJkZWxlZ2F0ZSI6IiIsImV4cCI6IjIwMTctMDItMDNUMTU6MDc6MTRaIiwiZmVhdHVyZXMiOlsidGVhbWRvY3MiLCJjb21iaW5lIiwiZXNpZ24iXSwiaWF0IjoiMjAxNy0wMi0wM1QxNDowNzoxNC40MTMyMTg2OTNaIiwianRpIjoiNTU2ZmU1MTgtYTk0Mi00YTQ3LTkyZmMtNWNmNmVkOWY0YWFhIiwicGVybXMiOlsiYWNjb3VudHM6cmVhZCIsImdyb3VwczpyZWFkIiwidXNlcnM6d3JpdGUiXSwic3ViIjoiY3NzcGVyc29uQGdvbml0cm8uY29tIn0.6eWCzu6yHhgzuvUPaNloNl09uUfaN6nqhK1W--TQwtMk29tf5C5SV-hTT2pxnSxe"
+    token = %Joken.Token{ claims: %{
+      acct: "1",
+      azp: "beowulf@geatland.example.com",
+      exp: (DateTime.utc_now |> DateTime.to_unix) + 100,
+      iat: (DateTime.utc_now |> DateTime.to_unix) - 100,
+      jti: "556fe518-a942-4a47-92fc-5cf6ed9f4aaa",
+    } }
+    |> Joken.sign(Joken.hs384(@jwt_secret))
+    |> Joken.get_compact
 
     ok_body = Poison.encode!(%{ data: token })
     ok_response = {:ok, %HTTPoison.Response{status_code: 200, body: ok_body }}
@@ -79,7 +89,7 @@ defmodule SpacesuitSessionServiceTest do
       end
     end
 
-    test "invalid token signature returns a :stop request", state do
+    test "invalid token signature returns a :stop request" do
       token = "garbage"
       req = %{ prove_identity: "proof" }
       result = Spacesuit.SessionService.handle_bearer_token(req, %{}, token, "example.com")
@@ -95,6 +105,37 @@ defmodule SpacesuitSessionServiceTest do
         result = Spacesuit.SessionService.handle_bearer_token(req, %{}, token, "example.com")
         assert {:stop, ^req} = result
       end
+    end
+
+    test "returns invalid token for an expired token" do
+      token = %Joken.Token{ claims: %{
+        acct: "1",
+        azp: "beowulf@geatland.example.com",
+        exp: (DateTime.utc_now |> DateTime.to_unix) - 100,
+        iat: (DateTime.utc_now |> DateTime.to_unix) - 300,
+        jti: "556fe518-a942-4a47-92fc-5cf6ed9f4aaa",
+      } }
+      |> Joken.sign(Joken.hs384(@jwt_secret))
+      |> Joken.get_compact
+
+      result = Spacesuit.SessionService.handle_bearer_token(%{}, %{}, token, "example.com")
+      assert {:stop, %{}} = result
+    end
+  end
+
+  describe "unexpired?/1" do
+    test "If passed anything but a unix epoch integer, we say it's expired" do
+      assert Spacesuit.SessionService.unexpired?("asdf") == false
+    end
+
+    test "If passed an expired time, it's expired" do
+      expired = DateTime.to_unix(DateTime.utc_now) - 10
+      assert Spacesuit.SessionService.unexpired?(expired) == false
+    end
+
+    test "If passed a valid time, its ok" do
+      valid = DateTime.to_unix(DateTime.utc_now) + 10
+      assert Spacesuit.SessionService.unexpired?(valid) == true
     end
   end
 end

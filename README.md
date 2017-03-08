@@ -62,6 +62,18 @@ for your license key:
 * `NEW_RELIC_LICENSE_KEY` the string value containing your New Relic license, as
   provided to any other New Relic agent.
 
+Route Configuration
+-------------------
+
+The routes support a fairly extensive pattern match, primarily from the
+underlying Cowboy web server. The good documentation on that is [available
+here](https://ninenines.eu/docs/en/cowboy/1.0/guide/routing/). Spacesuit supports
+outbound remapping using a very similar syntax, as shown above.
+
+Once you have written your routes, a good step is to run the `mix validate_routes`
+task, which will load the routes for the current `MIX_ENV` and check them all
+for correctness.
+
 Coverage
 --------
 

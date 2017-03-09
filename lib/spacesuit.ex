@@ -3,6 +3,10 @@ require Logger
 defmodule Spacesuit do
   use Application
   
+  @moduledoc """
+    The main Spacesuit application module.
+  """
+
   @http_port 8080
 
   def start(_type, _args) do

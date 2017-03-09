@@ -1,7 +1,6 @@
 defmodule Spacesuit.ProxyHandler do
   require Logger
   use Elixometer
-  require IEx
 
   @http_client Application.get_env(:spacesuit, :http_client)
   @http_server Application.get_env(:spacesuit, :http_server)
@@ -68,13 +67,18 @@ defmodule Spacesuit.ProxyHandler do
   # Make the request to the destination using Hackney
   def request_upstream(method, url, ups_headers, downstream) do
     method = String.downcase(method)
+    if @http_server.has_body(downstream) do
+      # This reads the whole incoming body into RAM. TODO see if we can not do that.
+      case @http_server.read_body(downstream) do
+        {:ok, body, downstream} ->
+          @http_client.request(method, url, ups_headers, body, [])
 
-    case Map.fetch(downstream, :has_body) do
-      {:ok, true}  ->
-        # This reads the whole incoming body into RAM. TODO see if we can not do that.
-        @http_client.request(method, url, ups_headers, Map.get(downstream, :body, []), [])
-      {:ok, false} ->
-        @http_client.request(method, url, ups_headers, [], [])
+        {:more, _body, _downstream} ->
+          # TODO this doesn't handle large bodies
+          Logger.error "Request body too large! Size was #{:cowboy_req.body_length(downstream)}"
+      end
+    else
+      @http_client.request(method, url, ups_headers, [], [])
     end
   end
 

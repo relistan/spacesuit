@@ -2,11 +2,15 @@ defmodule Spacesuit.Mixfile do
   use Mix.Project
   use Mix.Config
 
+  def build_embedded? do
+    Mix.env == :prod || Mix.env == :dev
+  end
+
   def project do
     [app: :spacesuit,
      version: "0.1.0",
      elixir: "~> 1.4",
-     build_embedded: true,
+     build_embedded: build_embedded?(),
      start_permanent: Mix.env == :prod,
      deps: deps(),
      test_coverage: [tool: ExCoveralls],

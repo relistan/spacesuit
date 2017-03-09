@@ -43,7 +43,6 @@ defmodule Spacesuit.SessionService do
   @behaviour SessionService
 
   @http_server     Application.get_env(:spacesuit, :http_server)
-  @jwt_secret      Application.get_env(:spacesuit, :jwt_secret)
   @recv_timeout    1000 # How many milliseconds before we timeout call to session-service
 
   @doc """
@@ -86,10 +85,12 @@ defmodule Spacesuit.SessionService do
     Do a quick validation on the token provided
   """
   def validate_api_token(token) do
+    jwt_secret = Application.get_env(:spacesuit, :jwt_secret)
+
     result =
         token
         |> Joken.token
-        |> Joken.with_signer(Joken.hs384(@jwt_secret))
+        |> Joken.with_signer(Joken.hs384(jwt_secret))
         |> Joken.with_validation("exp", &unexpired?/1)
         |> Joken.verify
 

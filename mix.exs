@@ -39,7 +39,7 @@ defmodule Spacesuit.Mixfile do
   defp deps do
     [
       # All envs
-      {:hackney, "~> 1.6.3"},
+      {:hackney, "~> 1.7.1", override: true},
       {:cowboy, github: "extend/cowboy"},
       {:poison, "~> 3.0", override: true},
       {:joken, "~> 1.4.1"},

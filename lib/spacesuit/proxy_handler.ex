@@ -1,6 +1,7 @@
 defmodule Spacesuit.ProxyHandler do
   require Logger
   use Elixometer
+  require IEx
 
   @http_client Application.get_env(:spacesuit, :http_client)
   @http_server Application.get_env(:spacesuit, :http_server)
@@ -25,7 +26,7 @@ defmodule Spacesuit.ProxyHandler do
   end
 
   @timed(key: "timed.proxyHandler-proxyRequest", units: :millisecond)
-  defp handle_request(req, ups_url, ups_headers, method) do
+  def handle_request(req, ups_url, ups_headers, method) do
     case request_upstream(method, ups_url, ups_headers, req) do
       {:ok, status, headers, upstream} ->
         down_headers = headers |> hackney_to_cowboy
@@ -71,7 +72,7 @@ defmodule Spacesuit.ProxyHandler do
     case Map.fetch(downstream, :has_body) do
       {:ok, true}  ->
         # This reads the whole incoming body into RAM. TODO see if we can not do that.
-        @http_client.request(method, url, ups_headers, Map.get(downstream, :body), [])
+        @http_client.request(method, url, ups_headers, Map.get(downstream, :body, []), [])
       {:ok, false} ->
         @http_client.request(method, url, ups_headers, [], [])
     end

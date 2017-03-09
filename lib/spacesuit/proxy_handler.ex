@@ -70,7 +70,7 @@ defmodule Spacesuit.ProxyHandler do
     if @http_server.has_body(downstream) do
       # This reads the whole incoming body into RAM. TODO see if we can not do that.
       case @http_server.read_body(downstream) do
-        {:ok, body, downstream} ->
+        {:ok, body, _downstream} ->
           @http_client.request(method, url, ups_headers, body, [])
 
         {:more, _body, _downstream} ->

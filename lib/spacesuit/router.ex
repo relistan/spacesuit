@@ -1,7 +1,7 @@
 defmodule Spacesuit.Router do
   require Logger
 
-  @http_verbs [:GET, :POST, :PUT, :PATCH, :DELETE, :HEAD]
+  @http_verbs [:GET, :POST, :PUT, :PATCH, :DELETE, :HEAD, :OPTIONS]
 
   def load_routes do
     Application.get_env(:spacesuit, :routes) |> transform_routes

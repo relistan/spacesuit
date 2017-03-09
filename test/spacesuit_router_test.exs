@@ -10,6 +10,7 @@ defmodule SpacesuitRouterTest do
               description: 'users to localhost',
               GET: 'http://localhost:9090/:user_id',
               POST: 'http://example.com:9090/:user_id',
+              OPTIONS: 'http://ui.example.com:9090/:user_id',
             }},
           {'/[...]',
             %{
@@ -85,6 +86,7 @@ defmodule SpacesuitRouterTest do
     { _route, _handler, handler_opts } = output
 
     assert [ _one, _two ] = Map.get(handler_opts, :GET)
+    assert [ _one, _two ] = Map.get(handler_opts, :OPTIONS)
   end
 
   test "adds health route when configured to", state do

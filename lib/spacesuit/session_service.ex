@@ -42,9 +42,9 @@ defmodule Spacesuit.SessionService do
 
   @behaviour SessionService
 
-  @jwt_secret      Application.get_env(:spacesuit, :jwt_secret)
   @http_server     Application.get_env(:spacesuit, :http_server)
-  @recv_timeout    500 # How many milliseconds before we timeout call to session-service
+  @jwt_secret      Application.get_env(:spacesuit, :jwt_secret)
+  @recv_timeout    1000 # How many milliseconds before we timeout call to session-service
 
   @doc """
     Consume a bearer token, validate it, and then either
@@ -104,7 +104,7 @@ defmodule Spacesuit.SessionService do
     exp_time > now
   end
 
-  def unexpired?(time) do
+  def unexpired?(_time) do
     # If anything else other than Unix epoch time was sent, we say it's expired
     false
   end

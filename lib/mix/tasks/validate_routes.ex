@@ -30,11 +30,11 @@ defmodule Mix.Tasks.ValidateRoutes do
       raise "Expected route function map, found #{inspect(args)}"
     end
 
-    Enum.each(args, fn {key, _value} ->
-      if !Enum.any?(@valid_map_keys, fn valid -> key == valid end) do
+    for {key, value} <- args do
+      if !(key in @valid_map_keys) do
         raise "Expected key to be one of #{inspect(@valid_map_keys)}, got #{inspect(key)}"
       end
-    end)
+    end
 
     case args[:uri] do
       %URI{authority: _auth, path: _path, scheme: _scheme} -> :ok
@@ -54,9 +54,9 @@ defmodule Mix.Tasks.ValidateRoutes do
              raise "Expected host matcher, found #{inspect(host)}"
            end
 
-           routes |> Enum.each(fn route ->
+           for route <- routes do
              validate_one_route(route)
-           end)
+           end
          end)
 
     IO.puts "----------------------------\n"

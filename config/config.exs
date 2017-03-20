@@ -30,12 +30,25 @@ config :logger, level: String.to_atom(System.get_env("SPACESUIT_LOGGING_LEVEL") 
 config :logger, :console, 
   format: "$time $metadata[$level] $message\n"
 
+# Because Exometer and Elixometer have a hard dependency on Lager, we have to
+# make that all play nice
+# --------------------------------------------------------------
+# Stop lager redirecting :error_logger messages
+config :lager, :error_logger_redirect, false
+# Stop lager removing Logger's :error_logger handler
+config :lager, :error_logger_whitelist, [Logger.ErrorHandler]
+# Stop lager writing a crash log
+config :lager, :crash_log, false
+# Use LagerLogger as lager's only handler.
+config :lager, :handlers, [{LagerLogger, [level: :debug]}]
+# --------------------------------------------------------------
+
 # If we have a NEW_RELIC_LICENSE_KEY, we'll use a New Relic reporter
 if System.get_env("NEW_RELIC_LICENSE_KEY") != "" do
   config :exometer_core, report: [
     reporters: ["Elixir.Exometer.NewrelicReporter":
       [
-        application_name: "Spacesuit #{System.get_env("MIX_ENV") || "dev"}",
+        application_name: "Spacesuit #{Mix.env}",
         license_key: System.get_env("NEW_RELIC_LICENSE_KEY"),
         synthesize_metrics: %{
           "proxyHandler-handle" => "HttpDispatcher"

@@ -49,6 +49,8 @@ defmodule Spacesuit.Mixfile do
       {:joken, "~> 1.4.1"},
       {:elixometer, github: "pinterest/elixometer"},
       {:exometer_newrelic_reporter, github: "nitro/exometer_newrelic_reporter"},
+      {:lager, "3.2.4", override: true},
+      {:lager_logger, github: "PSPDFKit-labs/lager_logger"},
 
       # Test only
       {:excoveralls, "~> 0.6", only: :test},

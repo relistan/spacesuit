@@ -70,6 +70,13 @@ underlying Cowboy web server. The good documentation on that is [available
 here](https://ninenines.eu/docs/en/cowboy/1.0/guide/routing/). Spacesuit supports
 outbound remapping using a very similar syntax, as shown above.
 
+The routes operate as a drop-through list so the first match will be the one
+used. This means you need to order your routes from the most specific to the
+least specific in descending order. E.g. if you have a wildcard match that will
+match all hostnames, it needs to be below any routes that match on specific
+hostnames. If you've written network access lists before, these operate in a
+similar manner.
+
 Once you have written your routes, a good step is to run the `mix validate_routes`
 task, which will load the routes for the current `MIX_ENV` and check them all
 for correctness.

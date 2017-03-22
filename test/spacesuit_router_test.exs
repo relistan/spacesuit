@@ -4,21 +4,23 @@ defmodule SpacesuitRouterTest do
 
   setup_all do
     routes =
-        %{':_' =>
-          [{'/users/:user_id',
-            %{
+        %{
+          'oh-my.example.com' =>
+            [{'/somewhere', %{
+              description: 'oh my example',
+              all_actions: 'http://example.com'
+            }}],
+          ':_' =>
+            [{'/users/:user_id', %{
               description: 'users to localhost',
               GET: 'http://localhost:9090/:user_id',
               POST: 'http://example.com:9090/:user_id',
               OPTIONS: 'http://ui.example.com:9090/:user_id',
             }},
-          {'/[...]',
-            %{
+            {'/[...]', %{
               description: 'others to hacker news',
               destination: 'https://news.ycombinator.com',
-             }
-          }
-          ]
+            }}]
         }
 
     {:ok, routes: routes}
@@ -103,5 +105,11 @@ defmodule SpacesuitRouterTest do
     {':_', [{route_path, handler, _map} | _]} = first_route
     assert "/health" != route_path
     assert Spacesuit.HealthHandler != handler
+  end
+
+  test "generates routes that are properly ordered", state do
+    Application.put_env(:spacesuit, :routes, state[:routes])
+    assert {'oh-my.example.com', _} = List.first(Spacesuit.Router.load_routes)
+    assert {':_', _} = List.last(Spacesuit.Router.load_routes)
   end
 end

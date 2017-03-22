@@ -7,11 +7,16 @@ defmodule Mix.Tasks.ValidateRoutes do
     [:description, :destination, :all_actions, :uri]
 
   def run(_) do
-    IO.puts "\nValidating Spaceuit Routes"
+    IO.puts "\nValidating Spacesuit Routes"
     IO.puts "----------------------------\n"
 
-    Spacesuit.Router.load_routes
-      |> validate_routes
+    routes = Spacesuit.Router.load_routes
+
+    validate_routes(routes)
+    case :cowboy_router.compile(routes) do
+      {:error, _} -> IO.puts "ERROR: Cowboy unable to compile routes!"
+      _ -> IO.puts "OK: Cowboy compiled successfully"
+    end
   end
 
   # All the generated routes match this pattern
@@ -30,7 +35,7 @@ defmodule Mix.Tasks.ValidateRoutes do
       raise "Expected route function map, found #{inspect(args)}"
     end
 
-    for {key, value} <- args do
+    for {key, _value} <- args do
       if !(key in @valid_map_keys) do
         raise "Expected key to be one of #{inspect(@valid_map_keys)}, got #{inspect(key)}"
       end
@@ -60,6 +65,6 @@ defmodule Mix.Tasks.ValidateRoutes do
          end)
 
     IO.puts "----------------------------\n"
-    IO.puts "Routes look good!"
+    IO.puts "Generated routes are formatted properly"
   end
 end

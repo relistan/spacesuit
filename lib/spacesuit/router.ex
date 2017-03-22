@@ -4,7 +4,9 @@ defmodule Spacesuit.Router do
   @http_verbs [:GET, :POST, :PUT, :PATCH, :DELETE, :HEAD, :OPTIONS]
 
   def load_routes do
-    Application.get_env(:spacesuit, :routes) |> transform_routes
+    Application.get_env(:spacesuit, :routes)
+      |> transform_routes
+      |> Enum.reverse
   end
 
   def transform_routes(source) do

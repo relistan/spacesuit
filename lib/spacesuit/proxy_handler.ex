@@ -19,7 +19,7 @@ defmodule Spacesuit.ProxyHandler do
     ups_headers = cowboy_to_hackney(headers, peer)
 
     # Make the proxy request
-    handle_request(req, ups_url, ups_headers, method)
+    req = handle_request(req, ups_url, ups_headers, method)
     
     {:ok, req, state}
   end
@@ -40,14 +40,18 @@ defmodule Spacesuit.ProxyHandler do
       {:error, :closed} ->
         error_reply(req, 502, "Bad Gateway - Connection closed")
 
-      {:error, :timeout} ->
+      {:error, :connect_timeout} ->
         error_reply(req, 502, "Bad Gateway - Connection timeout")
+
+      {:error, :timeout} ->
+        error_reply(req, 502, "Bad Gateway - Timeout")
 
       {:error, :bad_request} ->
         error_reply(req, 400, "Bad Request")
 
       unexpected ->
         Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"
+        req
     end
   end
 

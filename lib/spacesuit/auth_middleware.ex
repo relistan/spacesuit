@@ -8,7 +8,7 @@ defmodule Spacesuit.AuthMiddleware do
 
     case req[:headers]["authorization"] do
       nil ->
-        Logger.warn "No auth header"
+        Logger.debug "No auth header"
         {:ok, req, env}
 
       "Bearer " <> token ->

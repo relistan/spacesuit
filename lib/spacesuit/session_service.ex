@@ -70,7 +70,8 @@ defmodule Spacesuit.SessionService do
         {:stop, req}
 
       {:error, type, error} ->
-        Logger.error "Session-service #{inspect(type)} error: #{inspect(error)}"
+        # We only warn here because it's (probably) a client side issue
+        Logger.warn "Session-service #{inspect(type)} error: #{inspect(error)}"
         error_reply(req, 401, "Bad Authentication Token")
         {:stop, req}
 

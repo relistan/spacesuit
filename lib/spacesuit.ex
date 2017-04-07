@@ -2,7 +2,7 @@ require Logger
 
 defmodule Spacesuit do
   use Application
-  
+
   @moduledoc """
     The main Spacesuit application module.
   """
@@ -22,7 +22,7 @@ defmodule Spacesuit do
            },
            middlewares: [
              #:cowboy_router, Spacesuit.DebugMiddleware, Spacesuit.AuthMiddleware, :cowboy_handler
-             :cowboy_router, Spacesuit.AuthMiddleware, :cowboy_handler
+             :cowboy_router, Spacesuit.CorsMiddleware, Spacesuit.AuthMiddleware, :cowboy_handler
            ]
          }
     )

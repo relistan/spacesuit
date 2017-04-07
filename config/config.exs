@@ -27,7 +27,7 @@ config :logger, level: String.to_atom(System.get_env("SPACESUIT_LOGGING_LEVEL") 
 
 # Get rid of the execessive line feeding and level padding in
 # the default Elixir logger.
-config :logger, :console, 
+config :logger, :console,
   format: "$time $metadata[$level] $message\n"
 
 # Because Exometer and Elixometer have a hard dependency on Lager, we have to
@@ -66,6 +66,8 @@ config :spacesuit, :health_route, %{ path: "/health", enabled: true }
 
 # Do we call out to an external session service that can process JWT tokens?
 config :spacesuit, session_service: %{ enabled: false }
+
+config :spacesuit, cors: %{ enabled: false }
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

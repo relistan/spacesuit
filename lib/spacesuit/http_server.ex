@@ -6,6 +6,7 @@ defmodule HttpServer do
   @callback read_body(Map.t) :: any
   @callback body_length(Map.t) :: Integer.t
   @callback uri(Map.t) :: String.t
+  @callback set_resp_headers(Map.t, Map.t) :: any
 end
 
 defmodule Spacesuit.HttpServer.Cowboy do
@@ -17,6 +18,10 @@ defmodule Spacesuit.HttpServer.Cowboy do
 
   def stream_body(data, status, downstream) do
     :cowboy_req.stream_body(data, status, downstream)
+  end
+
+  def reply(code, headers, req) do
+    :cowboy_req.reply(code, headers, req)
   end
 
   def reply(code, headers, msg, req) do
@@ -38,6 +43,10 @@ defmodule Spacesuit.HttpServer.Cowboy do
   def uri(req) do
     :cowboy_req.uri(req)
   end
+
+  def set_resp_headers(headers, req) do
+    :cowboy_req.set_resp_headers(headers, req)
+  end
 end
 
 defmodule Spacesuit.HttpServer.Mock do
@@ -48,6 +57,10 @@ defmodule Spacesuit.HttpServer.Mock do
   end
 
   def stream_body(_data, _status, _downstream) do
+    :ok
+  end
+
+  def reply(_code, _headers, _req) do
     :ok
   end
 
@@ -70,5 +83,14 @@ defmodule Spacesuit.HttpServer.Mock do
 
   def uri(req) do
     req[:url]
+  end
+
+  def set_resp_headers(headers, req) do
+    {_, with_resp_headers} = Map.get_and_update(
+      req,
+      :resp_headers,
+      fn h -> {h, Map.merge(h || %{}, headers)} end
+    )
+    with_resp_headers
   end
 end

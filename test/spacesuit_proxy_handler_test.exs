@@ -33,13 +33,17 @@ defmodule SpacesuitProxyHandlerTest do
     }
 
     peer = Spacesuit.ProxyHandler.format_peer({{127,0,0,1},32767})
-    processed = Spacesuit.ProxyHandler.cowboy_to_hackney(headers, peer)
+    original_url = "http://localhost:9090"
+    processed = Spacesuit.ProxyHandler.cowboy_to_hackney(headers, peer, original_url)
 
     assert {"X-Forwarded-For", "127.0.0.1"} =
       List.keyfind(processed, "X-Forwarded-For", 0)
 
     assert {"accept-language", "en-US,en;q=0.5"} =
       List.keyfind(processed, "accept-language", 0)
+
+    assert {"X-Forwarded-Url", ^original_url} =
+      List.keyfind(processed, "X-Forwarded-Url", 0)
 
     assert nil == List.keyfind(processed, "Host", 0)
   end

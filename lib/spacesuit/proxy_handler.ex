@@ -16,7 +16,7 @@ defmodule Spacesuit.ProxyHandler do
     # Prepare some things we'll need
     ups_url     = build_upstream_url(req, state)
     peer        = format_peer(peer)
-    ups_headers = cowboy_to_hackney(headers, peer)
+    ups_headers = cowboy_to_hackney(headers, peer, @http_server.uri(req))
 
     # Make the proxy request
     req = handle_request(req, ups_url, ups_headers, method)
@@ -106,9 +106,10 @@ defmodule Spacesuit.ProxyHandler do
   end
 
   # Convery headers from Cowboy map format to Hackney list format
-  def cowboy_to_hackney(headers, peer) do
+  def cowboy_to_hackney(headers, peer, url) do
     (headers || %{})
       |> Map.put("X-Forwarded-For", peer)
+      |> Map.put("X-Forwarded-Url", url)
       |> Map.drop([ "host", "Host" ])
       |> Map.to_list
   end

@@ -5,6 +5,7 @@ defmodule HttpServer do
   @callback has_body(Map.t) :: Boolean.t
   @callback read_body(Map.t) :: any
   @callback body_length(Map.t) :: Integer.t
+  @callback uri(Map.t) :: String.t
 end
 
 defmodule Spacesuit.HttpServer.Cowboy do
@@ -32,6 +33,10 @@ defmodule Spacesuit.HttpServer.Cowboy do
 
   def body_length(req) do
     :cowboy_req.body_length(req)
+  end
+
+  def uri(req) do
+    :cowboy_req.uri(req)
   end
 end
 
@@ -61,5 +66,9 @@ defmodule Spacesuit.HttpServer.Mock do
 
   def body_length(req) do
     String.length(req[:body] || "")
+  end
+
+  def uri(req) do
+    req[:url]
   end
 end

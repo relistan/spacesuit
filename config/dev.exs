@@ -19,7 +19,10 @@ config :spacesuit, routes: %{
     { "/users/:user_id", %{
       description: "users to [::1]:9090",
       GET: "http://[::1]:9090/:user_id", # ipv6 localhost (thanks osx)
-      POST: "http://[::1]:9090/:user_id"
+      POST: "http://[::1]:9090/:user_id",
+      add_headers: %{
+        "X-Something-Special" => "Some value"
+      }
     }},
 
     {"/users/something/:user_id", %{

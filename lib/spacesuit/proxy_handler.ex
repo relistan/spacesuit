@@ -108,7 +108,7 @@ defmodule Spacesuit.ProxyHandler do
 
   # Take static headers from the config and add them to this request
   def add_headers_to(headers, added_headers) do
-    Map.merge(headers, added_headers)
+    Map.merge((headers || %{}), (added_headers || %{}))
   end
 
   # Convery headers from Cowboy map format to Hackney list format

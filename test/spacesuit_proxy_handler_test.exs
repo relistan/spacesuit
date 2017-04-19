@@ -22,7 +22,7 @@ defmodule SpacesuitProxyHandlerTest do
     assert "some-cookie-data" = Map.get(processed, "cookie", "empty") 
   end
 
-  test "adding headers specified int he config" do
+  test "adding headers specified in the config" do
     headers = %{
       "user-agent" => Enum.join([
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:50.0) ",
@@ -36,6 +36,12 @@ defmodule SpacesuitProxyHandlerTest do
 
     assert all_headers["Add-One"] == "1"
     assert all_headers["Add-Two"] == "2"
+  end
+
+  test "doesn't crash on nil added_headeres" do
+    result = Spacesuit.ProxyHandler.add_headers_to(%{}, nil)
+
+    assert %{} == result
   end
 
   test "converting headers to Hackney format" do

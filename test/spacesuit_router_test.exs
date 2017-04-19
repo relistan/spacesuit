@@ -8,7 +8,11 @@ defmodule SpacesuitRouterTest do
           'oh-my.example.com' =>
             [{'/somewhere', %{
               description: 'oh my example',
-              all_actions: 'http://example.com'
+              all_actions: 'http://example.com',
+              add_headers: %{
+                'X-Something-Invalid': 123,
+                'X-Something-Awesome': "awesome"
+              }
             }}],
           ':_' =>
             [{'/users/:user_id', %{
@@ -111,5 +115,18 @@ defmodule SpacesuitRouterTest do
     Application.put_env(:spacesuit, :routes, state[:routes])
     assert {'oh-my.example.com', _} = List.first(Spacesuit.Router.load_routes)
     assert {':_', _} = List.last(Spacesuit.Router.load_routes)
+  end
+
+  test "transforms headers into String:String maps", state do
+    %{
+      'oh-my.example.com' => [ route | _ ]
+    } = state[:routes]
+
+    output = Spacesuit.Router.transform_one_route(route)
+    { _route, _handler, handler_opts } = output
+
+    assert map_size(handler_opts[:add_headers]) == 2
+    assert handler_opts[:add_headers]["X-Something-Invalid"] == "123"
+    assert handler_opts[:add_headers]["X-Something-Awesome"] == "awesome"
   end
 end

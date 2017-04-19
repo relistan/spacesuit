@@ -37,6 +37,7 @@ defmodule Spacesuit.Router do
       opts
       |> process_verbs
       |> add_all_actions
+      |> process_headers
 
     {route, Spacesuit.ProxyHandler, compiled_opts}
   end
@@ -57,6 +58,22 @@ defmodule Spacesuit.Router do
           memo # do nothing, we just don't have this verb
       end
     end)
+  end
+
+  # Will insert custom headers into each request. Currently only
+  # static headers are supported. Does not modify the casing of
+  # the headers: they will passed as specified in the config.
+  defp process_headers(opts) do
+    case Map.fetch(opts, :add_headers) do
+      {:ok, headers} ->
+        valid_opts = Enum.map(headers, fn({header, value}) ->
+          {to_string(header), to_string(value)}
+        end)
+
+        Map.put(opts, :add_headers, Map.new(valid_opts))
+
+      :error -> opts
+    end
   end
 
   # If the all_actions key is present, let's add them all.

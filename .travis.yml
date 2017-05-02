@@ -17,11 +17,9 @@ script:
 after_success:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-     docker/build.sh
+      echo "Building container gonitro/spacesuit:${TRAVIS_COMMIT::7}";
+      docker/build.sh;
     fi
   - if [ "$TRAVIS_BRANCH" == "master" ] && [ -z "${NO_PUSH_LATEST}" ]; then
       docker push gonitro/spacesuit:latest;
     fi
-
-    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD" &&
-    echo "Building container gonitro/spacesuit:${TRAVIS_COMMIT::7}" &&

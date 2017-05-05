@@ -122,6 +122,14 @@ defmodule SpacesuitProxyHandlerTest do
     assert {:ok, false} = result
   end
 
+  test "handles responses that have a nil upstream (no body)" do
+    assert :ok = Spacesuit.ProxyHandler.handle_reply(200, %{}, [], nil)
+  end
+
+  test "handles responses that have a an empty body" do
+    assert :ok = Spacesuit.ProxyHandler.handle_reply(200, %{}, [], %{})
+  end
+
   test "stream calls complete properly" do
     assert :ok = Spacesuit.ProxyHandler.stream(:done, nil)
   end

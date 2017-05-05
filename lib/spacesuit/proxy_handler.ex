@@ -29,11 +29,10 @@ defmodule Spacesuit.ProxyHandler do
   def handle_request(req, ups_url, ups_headers, method) do
     case request_upstream(method, ups_url, ups_headers, req) do
       {:ok, status, headers, upstream} ->
-        down_headers = headers |> hackney_to_cowboy
-        # This always does a chunked reply, which is a shame because we
-        # usually have the content-length. TODO figure this out.
-        downstream = @http_server.stream_reply(status, down_headers, req)
-        stream(upstream, downstream)
+        handle_reply(status, req, headers, upstream)
+
+      {:ok, status, headers} ->
+        handle_reply(status, req, headers, nil)
 
       {:error, :econnrefused} ->
         error_reply(req, 503, "Service Unavailable - Connection refused")
@@ -53,6 +52,23 @@ defmodule Spacesuit.ProxyHandler do
       unexpected ->
         Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"
         req
+    end
+  end
+
+  # We got a valid response from upstream, so now we have to send it
+  # back to the client. But HEAD requests need to be treated differently
+  # because Cowboy will return a 204 No Content if we try to use a
+  # `stream_reply` call.
+  def handle_reply(status, req, headers, upstream) do
+    down_headers = headers |> hackney_to_cowboy
+
+    if !is_nil(upstream) && @http_server.has_body(upstream) do
+      # This always does a chunked reply, which is a shame because we
+      # usually have the content-length. TODO figure this out.
+      downstream = @http_server.stream_reply(status, down_headers, req)
+      stream(upstream, downstream)
+    else
+      @http_server.reply(status, down_headers, <<>>, req)
     end
   end
 

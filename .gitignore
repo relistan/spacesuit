@@ -18,3 +18,6 @@ erl_crash.dump
 
 *.swp
 *.swo
+
+# Don't want the lager log/ directory
+/log

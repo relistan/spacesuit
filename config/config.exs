@@ -67,7 +67,21 @@ config :spacesuit, :health_route, %{ path: "/health", enabled: true }
 # Do we call out to an external session service that can process JWT tokens?
 config :spacesuit, session_service: %{ enabled: false }
 
-config :spacesuit, cors: %{ enabled: false }
+# Configuration for the CORS middleware
+config :spacesuit, cors: %{
+  # Main kill switch to disable the middleware
+  enabled: false, 
+  # Required prefix match in order to process CORS
+  path_prefixes: ["/matched"],
+  # Maximum age for preflight requests
+  preflight_max_age: "3600",
+  # Headers we validate for CORS
+  access_control_request_headers: ["X-Header1", "X-Header2"],
+  # Allow access from any origin
+  any_origin_allowed: false,
+  # Only allow CORS responses for these methods
+  # allowed_http_methods: [:GET, :POST]
+}
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

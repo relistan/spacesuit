@@ -29,7 +29,7 @@ defmodule SpacesuitCorsMiddlewareTest do
       assert {:ok, ^req, ^env} = Spacesuit.CorsMiddleware.execute(req, env)
     end
 
-    test "pass through same origin requests with a port number", state do
+    test "passes through same origin requests with a port number", state do
       req = Map.merge(
         state[:req],
         %{:port => 9000, :headers => %{"origin" => "http://www.example.com:9000"}}
@@ -38,20 +38,20 @@ defmodule SpacesuitCorsMiddlewareTest do
       assert {:ok, ^req, ^env} = Spacesuit.CorsMiddleware.execute(req, env)
     end
 
-    test "pass through same origin requests without a port number", state do
+    test "passes through same origin requests without a port number", state do
       req = Map.merge(state[:req],%{:headers => %{"origin" => "http://www.example.com"}})
       env = %{}
       assert {:ok, ^req, ^env} = Spacesuit.CorsMiddleware.execute(req, env)
     end
 
-    test "not consider subdomains to be the same origin", state do
+    test "does not consider subdomains to be the same origin", state do
       req = Map.merge(state[:req], %{:host => "example.com", :headers => %{"origin" => "http://www.example.com"}})
       env = %{}
       {_, req2, _} = Spacesuit.CorsMiddleware.execute(req, env)
       assert req2[:resp_headers]["Access-Control-Allow-Origin"] == "http://www.example.com"
     end
 
-    test "not consider different ports to be the same origin", state do
+    test "does not consider different ports to be the same origin", state do
       req = Map.merge(
         state[:req],
         %{
@@ -63,7 +63,7 @@ defmodule SpacesuitCorsMiddlewareTest do
       assert req2[:resp_headers]["Access-Control-Allow-Origin"] == "http://www.example.com:9000"
     end
 
-    test "not consider different protocols to be the same origin", state do
+    test "does not consider different protocols to be the same origin", state do
       req = Map.merge(
         state[:req],
         %{
@@ -75,25 +75,25 @@ defmodule SpacesuitCorsMiddlewareTest do
       assert req2[:resp_headers]["Access-Control-Allow-Origin"] == "https://www.example.com:9000"
     end
 
-    test "forbid an empty origin header", state do
+    test "forbids an empty origin header", state do
       req = Map.merge(state[:req], %{:headers => %{"origin" => ""}})
       env = %{}
       assert {:stop, _} = Spacesuit.CorsMiddleware.execute(req, env)
     end
 
-    test "forbid an invalid origin header", state do
+    test "forbids an invalid origin header", state do
       req = Map.merge(state[:req], %{:headers => %{"origin" => "localhost"}})
       env = %{}
       assert {:stop, _} = Spacesuit.CorsMiddleware.execute(req, env)
     end
 
-    test "forbid an unrecognized HTTP method", state do
+    test "forbids an unrecognized HTTP method", state do
       req = Map.merge(state[:req], %{ :method => "FOO", })
       env = %{}
       assert {:stop, _} = Spacesuit.CorsMiddleware.execute(req, env)
     end
 
-    test "forbid an empty Access-Control-Request-Method header in a preflight request", state do
+    test "forbids an empty Access-Control-Request-Method header in a preflight request", state do
       req = Map.merge(
         state[:req],
         %{
@@ -104,7 +104,7 @@ defmodule SpacesuitCorsMiddlewareTest do
       assert {:stop, _} = Spacesuit.CorsMiddleware.execute(req, env)
     end
 
-    test "handle a simple cross-origin request", state do
+    test "handles a simple cross-origin request", state do
       {:ok, with_resp_headers, _} = Spacesuit.CorsMiddleware.execute(state[:req], %{})
       resp_headers = with_resp_headers[:resp_headers]
       assert "http://localhost" = resp_headers["Access-Control-Allow-Origin"]
@@ -115,7 +115,7 @@ defmodule SpacesuitCorsMiddlewareTest do
       assert "Origin" = resp_headers["Vary"]
     end
 
-    test "handle a basic preflight request", state do
+    test "handles a basic preflight request", state do
       req = Map.merge(
         state[:req],
         %{
@@ -132,7 +132,7 @@ defmodule SpacesuitCorsMiddlewareTest do
       assert "Origin" = resp_headers["Vary"]
     end
 
-  test "handle a preflight request with request headers", state do
+  test "handles a preflight request with request headers", state do
     req = Map.merge(
       state[:req],
       %{

@@ -12,11 +12,7 @@ defmodule Spacesuit.CorsMiddleware do
   use Elixometer
 
   @http_server                    Application.get_env(:spacesuit, :http_server)
-  @cors                           Application.get_env(:spacesuit, :cors)
   @supported_http_methods         [:GET, :POST, :PUT, :PATCH, :DELETE, :HEAD, :OPTIONS]
-  @access_control_request_headers (@cors[:access_control_request_headers] || [])
-                                  |> Enum.map(&String.downcase/1)
-                                  |> Enum.into(MapSet.new)
 
   @timed(key: "timed.corsMiddleware-execute", units: :millisecond)
   def execute(req, env) do
@@ -61,6 +57,11 @@ defmodule Spacesuit.CorsMiddleware do
     end
   end
 
+  # Quick access function for the application settings for this middleware
+  def cors do
+    Application.get_env(:spacesuit, :cors) || %{}
+  end
+
   # We processed CORS headers and we pass on upstream to other middlewares.
   defp handle_success(req, env, headers) do
     {:ok, @http_server.set_resp_headers(headers, req), env}
@@ -87,13 +88,13 @@ defmodule Spacesuit.CorsMiddleware do
 
   # Do we even have the middleware enabled?
   defp enabled? do
-    enabled = Map.get((@cors || %{}), :enabled, false)
+    enabled = Map.get(cors(), :enabled, false)
     {enabled, :enabled?}
   end
 
   # Is the path something we can send a CORS response for?
   defp handled_path?(path) do
-    path_prefixes = (@cors[:path_prefixes] || ["/"])
+    path_prefixes = (cors()[:path_prefixes] || ["/"])
     result = Enum.any?(path_prefixes, fn(p) -> String.starts_with?(path, p) end)
     {result, :handled_path?}
   end
@@ -138,7 +139,7 @@ defmodule Spacesuit.CorsMiddleware do
   end
 
   defp valid_control_headers?(headers) do
-    MapSet.subset?(headers, @access_control_request_headers)
+    MapSet.subset?(headers, access_control_request_headers())
   end
 
   defp process_cors(origin, method, req) do
@@ -181,7 +182,7 @@ defmodule Spacesuit.CorsMiddleware do
 
   @spec origin_headers(String.t) :: Map.t
   defp origin_headers(origin) do
-    if @cors[:any_origin_allowed] do
+    if cors()[:any_origin_allowed] do
       %{
         "Access-Control-Allow-Origin" => "*"
        }
@@ -195,7 +196,7 @@ defmodule Spacesuit.CorsMiddleware do
 
   @spec preflight_header() :: Map.t
   defp preflight_header do
-    max_age = @cors[:preflight_max_age]
+    max_age = cors()[:preflight_max_age]
     if is_nil(max_age) || (max_age < 0) do
       %{}
     else
@@ -218,7 +219,7 @@ defmodule Spacesuit.CorsMiddleware do
 
   @spec allowed_origin?(String.t) :: boolean
   defp allowed_origin?(origin) do
-    allowed_origins = @cors[:allowed_origins]
+    allowed_origins = cors()[:allowed_origins]
     is_nil(allowed_origins) || Enum.member?(allowed_origins, origin)
   end
 
@@ -229,11 +230,17 @@ defmodule Spacesuit.CorsMiddleware do
 
   @spec allowed_http_method?(String.t) :: boolean
   def allowed_http_method?(method) do
-    cors = @cors || %{}
-    is_nil(cors[:allowed_http_methods]) || (
-        cors
+    is_nil(cors()[:allowed_http_methods]) || (
+        cors()
         |> Map.get(:allowed_http_methods, [])
         |> Enum.member?(method)
       )
   end
+
+  defp access_control_request_headers do
+    (cors()[:access_control_request_headers] || [])
+    |> Enum.map(&String.downcase/1)
+    |> Enum.into(MapSet.new)
+  end
+
 end

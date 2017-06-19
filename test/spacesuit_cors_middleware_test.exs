@@ -16,6 +16,10 @@ defmodule SpacesuitCorsMiddlewareTest do
     {:ok, req: req}
   end
 
+  setup do
+    Application.put_env(:spacesuit, :cors, @original_app_config)
+  end
+
   describe "changing various configuration settings" do
     test "passes all requests when the middleware is disabled", state do
       # Override the :enabled setting
@@ -26,8 +30,6 @@ defmodule SpacesuitCorsMiddlewareTest do
       req = Map.merge(state[:req], %{:headers => %{"origin" => ""}})
       env = %{}
       assert {:ok, ^req, ^env} = Spacesuit.CorsMiddleware.execute(req, env)
-
-      Application.put_env(:spacesuit, :cors, @original_app_config)
     end
 
     test "allows any origin when configured to do so", state do
@@ -48,16 +50,12 @@ defmodule SpacesuitCorsMiddlewareTest do
 
       {:stop, req2} = Spacesuit.CorsMiddleware.execute(req, env)
       assert req2[:resp_headers]["Access-Control-Allow-Origin"] == "*"
-
-      Application.put_env(:spacesuit, :cors, @original_app_config)
     end
 
     test "limits allowed HTTP methods when set" do
       Application.put_env(:spacesuit, :cors, %{allowed_http_methods: [:GET]})
       assert Spacesuit.CorsMiddleware.allowed_http_method?(:PUT) == false
       assert Spacesuit.CorsMiddleware.allowed_http_method?(:GET) == true
-
-      Application.put_env(:spacesuit, :cors, @original_app_config)
     end
   end
 

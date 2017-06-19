@@ -72,13 +72,13 @@ config :spacesuit, cors: %{
   # Main kill switch to disable the middleware
   enabled: false, 
   # Required prefix match in order to process CORS
-  path_prefixes: ["/matched"],
+  #path_prefixes: ["/matched"],
   # Maximum age for preflight requests
-  preflight_max_age: "3600",
+  #preflight_max_age: "3600",
   # Headers we validate for CORS
-  access_control_request_headers: ["X-Header1", "X-Header2"],
+  #access_control_request_headers: ["X-Header1", "X-Header2"],
   # Allow access from any origin
-  any_origin_allowed: false,
+  #any_origin_allowed: false,
   # Only allow CORS responses for these methods
   # allowed_http_methods: [:GET, :POST]
 }

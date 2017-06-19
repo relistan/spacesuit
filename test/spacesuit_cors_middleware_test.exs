@@ -36,13 +36,13 @@ defmodule SpacesuitCorsMiddlewareTest do
       current = Application.get_env(:spacesuit, :cors)
       Application.put_env(:spacesuit, :cors, Map.merge(current, %{any_origin_allowed: true}))
 
-      req = Map.merge(state[:req], 
+      req = Map.merge(state[:req],
         %{
           :host => "example.com",
           :method => "OPTIONS",
           :headers => %{
             "origin" => "http://www.example.com",
-            "Access-Control-Request-Method" => "GET"
+            "access-control-request-method" => "GET"
           }
         }
       )
@@ -165,7 +165,7 @@ defmodule SpacesuitCorsMiddlewareTest do
         state[:req],
         %{
           :method => "OPTIONS",
-          :headers => %{"origin" => "http://localhost", "Access-Control-Request-Method" => "PUT"}
+          :headers => %{"origin" => "http://localhost", "access-control-request-method" => "PUT"}
         })
       {:stop, with_resp_headers} = Spacesuit.CorsMiddleware.execute(req, %{})
       resp_headers = with_resp_headers[:resp_headers]
@@ -184,8 +184,8 @@ defmodule SpacesuitCorsMiddlewareTest do
         :method => "OPTIONS",
         :headers => %{
           "origin" => "http://localhost",
-          "Access-Control-Request-Method" => "PUT",
-          "Access-Control-Request-Headers" => "X-Header1, X-Header2"
+          "access-control-request-method" => "PUT",
+          "access-control-request-headers" => "X-Header1, X-Header2"
         }
       })
       {:stop, with_resp_headers} = Spacesuit.CorsMiddleware.execute(req, %{})

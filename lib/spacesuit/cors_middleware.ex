@@ -30,12 +30,12 @@ defmodule Spacesuit.CorsMiddleware do
       {false, :handled_path?} ->
         Logger.debug "No CORS headers set for #{req[:method]} #{req[:path]}"
         {:ok, req, env}
-        
+
       # OPTIONS request, we handle these ourselves. So short-circuit
       # downstream response and send 200
       {:ok, headers, :handle_ourselves} ->
         with_resp_headers = @http_server.set_resp_headers(headers, req)
-        @http_server.reply(200, with_resp_headers, req)
+        @http_server.reply(200, headers, with_resp_headers)
         {:stop, with_resp_headers}
 
       # There were no CORS headers, continue processing
@@ -102,7 +102,7 @@ defmodule Spacesuit.CorsMiddleware do
   # Is this request something we can handle?
   defp valid_cors_request?(req) do
     origin = req[:headers]["origin"]
-  
+
     cond do
       is_nil(origin) || same_origin?(origin, req) ->
         {:ok, {:skip, :valid_cors_request?}}
@@ -118,7 +118,7 @@ defmodule Spacesuit.CorsMiddleware do
   # Do we have headers we're allowed to process?
   def verify_access_control_request_headers(req) do
     # Access control request headers come jammed into a single string
-    acr_headers = (req[:headers]["Access-Control-Request-Headers"] || "")
+    acr_headers = (req[:headers]["access-control-request-headers"] || "")
     |> String.split(",")
     |> Enum.map(&String.downcase/1)
     |> Enum.map(&String.trim/1)
@@ -161,7 +161,7 @@ defmodule Spacesuit.CorsMiddleware do
   def handle_options_method(origin, method, req) do
     case verify_access_control_request_headers(req) do
       {:ok, allow_headers} ->
-        method = String.to_atom(req[:headers]["Access-Control-Request-Method"]) || ""
+        method = String.to_atom(req[:headers]["access-control-request-method"] || "")
         if supported_http_method?(method) && allowed_http_method?(method) do
           headers =
             allow_headers

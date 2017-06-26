@@ -4,7 +4,7 @@ defmodule Mix.Tasks.ValidateRoutes do
   @shortdoc "Validate the routes for an environment"
 
   @valid_map_keys Spacesuit.Router.get_http_verbs ++
-    [:description, :destination, :all_actions, :uri, :add_headers]
+    [:description, :destination, :all_actions, :uri]
 
   def run(_) do
     IO.puts "\nValidating Spacesuit Routes"

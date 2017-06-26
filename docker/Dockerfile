@@ -1,4 +1,4 @@
-FROM bitwalker/alpine-elixir:1.4.4
+FROM elixir:1.4.1
 
 ADD . /spacesuit
 

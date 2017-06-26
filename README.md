@@ -5,7 +5,8 @@ Spacesuit
 
 An API gateway written in Elixir, built on top of the Cowboy web server and
 Hackney http client. Supports streaming requests, remapping by hostname, HTTP
-method, and endpoint.
+method, and endpoint. Now also includes full CORS support with middleware,
+allowing backing services to offload CORS to Spacesuit.
 
 Sample config:
 ```ruby

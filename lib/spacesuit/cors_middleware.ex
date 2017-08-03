@@ -139,7 +139,11 @@ defmodule Spacesuit.CorsMiddleware do
   end
 
   defp valid_control_headers?(headers) do
-    MapSet.subset?(headers, access_control_request_headers())
+    if MapSet.size(headers) == 0 do
+      true
+    else
+      MapSet.subset?(headers, access_control_request_headers())
+    end
   end
 
   defp process_cors(origin, method, req) do

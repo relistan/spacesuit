@@ -70,7 +70,7 @@ defmodule SpacesuitAuthMiddlewareTest do
 
     test "with a valid token on a bypassed path" do
       Application.put_env(:spacesuit, :session_service, %{ enabled: true, impl: Spacesuit.MockSessionService })
-      Application.put_env(:handler_opts, :middlewares_config, %{ auth: %{ bypass_session_srv: true } })
+      Application.put_env(:handler_opts, :middleware, %{ session_service: :disabled })
 
       req = %{ headers: %{ "authorization" => "Bearer ok" }, pid: self(), streamid: 1, method: "GET" }
       env = %{}
@@ -81,7 +81,7 @@ defmodule SpacesuitAuthMiddlewareTest do
 
     test "with an invalid token on a bypassed path" do
       Application.put_env(:spacesuit, :session_service, %{ enabled: true, impl: Spacesuit.MockSessionService })
-      Application.put_env(:handler_opts, :middlewares_config, %{ auth: %{ bypass_session_srv: true } })
+      Application.put_env(:handler_opts, :middleware, %{ session_service: :disabled })
 
       req = %{ headers: %{ "authorization" => "Bearer error" }, pid: self(), streamid: 1, method: "GET" }
       env = %{}

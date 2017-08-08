@@ -50,7 +50,10 @@ defmodule Spacesuit.AuthMiddleware do
 
   # should the session service be bypassed for this route?
   defp bypass_session_srv?(env) do
-    get_in(env, [:handler_opts, :middlewares_config, :auth, :bypass_session_srv]) || false
+    case get_in(env, [:handler_opts, :middleware, :session_service]) do
+      :disabled -> true
+      _         -> false
+    end
   end
 
   defp error_reply(req, code, message) do

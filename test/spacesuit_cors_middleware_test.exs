@@ -178,10 +178,20 @@ defmodule SpacesuitCorsMiddlewareTest do
     end
 
     test "should not include access control max age header if option is invalid", state do
+        invalidMaxAge = -1000
         current = Application.get_env(:spacesuit, :cors)
-        Application.put_env(:spacesuit, :cors, Map.merge(current, %{preflight_max_age: -1000}))
+        Application.put_env(:spacesuit, :cors, Map.merge(current, %{preflight_max_age: invalidMaxAge}))
 
-        {:stop, with_resp_headers} = Spacesuit.CorsMiddleware.execute(state[:req], %{})
+        req = Map.merge(
+          state[:req],
+          %{
+            :method => "OPTIONS",
+            :headers => %{
+                "origin" => "http://localhost",
+                "access-control-request-method" => "PUT"
+            }
+          })
+        {:stop, with_resp_headers} = Spacesuit.CorsMiddleware.execute(req, %{})
         resp_headers = with_resp_headers[:resp_headers]
         assert is_nil resp_headers["Access-Control-Max-Age"]
     end

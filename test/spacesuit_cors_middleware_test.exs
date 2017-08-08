@@ -198,4 +198,25 @@ defmodule SpacesuitCorsMiddlewareTest do
       assert "Origin" = resp_headers["Vary"]
     end
   end
+
+  test "handles requests with any access control headers if option is empty", state do
+
+      current = Application.get_env(:spacesuit, :cors)
+      Application.put_env(:spacesuit, :cors, Map.merge(current, %{access_control_request_headers: nil}))
+
+      req = Map.merge(
+      state[:req],
+      %{
+          :method => "OPTIONS",
+          :headers => %{
+              "origin" => "http://localhost",
+              "access-control-request-method" => "PUT",
+              "access-control-request-headers" => "Fancy-header"
+          }
+      })
+
+      {:stop, with_resp_headers} = Spacesuit.CorsMiddleware.execute(req, %{})
+      resp_headers = with_resp_headers[:resp_headers]
+      assert "fancy-header" = resp_headers["Access-Control-Allow-Headers"]
+  end
 end

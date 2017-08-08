@@ -177,6 +177,15 @@ defmodule SpacesuitCorsMiddlewareTest do
       assert "Origin" = resp_headers["Vary"]
     end
 
+    test "should not include access control max age header if option is invalid", state do
+        current = Application.get_env(:spacesuit, :cors)
+        Application.put_env(:spacesuit, :cors, Map.merge(current, %{preflight_max_age: -1000}))
+
+        {:stop, with_resp_headers} = Spacesuit.CorsMiddleware.execute(state[:req], %{})
+        resp_headers = with_resp_headers[:resp_headers]
+        assert is_nil resp_headers["Access-Control-Max-Age"]
+    end
+
   test "handles a preflight request with request headers", state do
     req = Map.merge(
       state[:req],

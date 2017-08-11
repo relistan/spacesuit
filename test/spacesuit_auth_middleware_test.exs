@@ -48,7 +48,7 @@ defmodule SpacesuitAuthMiddlewareTest do
       assert {:stop, ^req} = Spacesuit.AuthMiddleware.execute(req, env)
     end
 
-   test "with a valid token when session service is enabled" do
+    test "with a valid token when session service is enabled" do
       Application.put_env(:spacesuit, :session_service, %{ enabled: true, impl: Spacesuit.MockSessionService })
 
       req = %{ headers: %{ "authorization" => "Bearer ok" }, pid: self(), streamid: 1, method: "GET" }
@@ -58,7 +58,7 @@ defmodule SpacesuitAuthMiddlewareTest do
       assert {:ok, ^req, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
     end
 
-   test "with a missing token when session service is enabled" do
+    test "with a missing token when session service is enabled" do
       Application.put_env(:spacesuit, :session_service, %{ enabled: true, impl: Spacesuit.MockSessionService })
 
       req = %{ headers: %{ "authorization" => "Bearer " }, pid: self(), streamid: 1, method: "GET" }
@@ -66,6 +66,28 @@ defmodule SpacesuitAuthMiddlewareTest do
 
       # Unrecognized, we pass it on as is
       assert {:ok, ^req, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
+    end
+
+    test "with a valid token on a bypassed path" do
+      Application.put_env(:spacesuit, :session_service, %{ enabled: true, impl: Spacesuit.MockSessionService })
+      Application.put_env(:handler_opts, :middleware, %{ session_service: :disabled })
+
+      req = %{ headers: %{ "authorization" => "Bearer ok" }, pid: self(), streamid: 1, method: "GET" }
+      env = %{}
+
+      # pass it on as is
+      assert {:ok, ^req, ^env} = Spacesuit.AuthMiddleware.execute(req, env)
+    end
+
+    test "with an invalid token on a bypassed path" do
+      Application.put_env(:spacesuit, :session_service, %{ enabled: true, impl: Spacesuit.MockSessionService })
+      Application.put_env(:handler_opts, :middleware, %{ session_service: :disabled })
+
+      req = %{ headers: %{ "authorization" => "Bearer error" }, pid: self(), streamid: 1, method: "GET" }
+      env = %{}
+
+      # Unrecognized, we pass it on as is
+      assert {:stop, ^req} = Spacesuit.AuthMiddleware.execute(req, env)
     end
   end
 end

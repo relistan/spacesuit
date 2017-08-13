@@ -4,7 +4,7 @@ defmodule Mix.Tasks.ValidateRoutes do
   @shortdoc "Validate the routes for an environment"
 
   @valid_map_keys Spacesuit.Router.get_http_verbs ++
-    [:description, :destination, :all_actions, :uri, :add_headers]
+    [:description, :destination, :all_actions, :uri, :add_headers, :middleware]
 
   def run(_) do
     IO.puts "\nValidating Spacesuit Routes"
@@ -43,6 +43,10 @@ defmodule Mix.Tasks.ValidateRoutes do
 
     if !is_nil(args[:add_headers]) && !is_map(args[:add_headers]) do
         raise "Expected add_headers option is not a map, #{inspect(args[:add_headers])}"
+    end
+
+    if !is_nil(args[:middleware]) && !is_map(args[:middleware]) do
+        raise "Expected middleware option is not a map, #{inspect(args[:middleware])}"
     end
 
     case args[:uri] do

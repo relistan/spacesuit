@@ -221,7 +221,7 @@ defmodule SpacesuitCorsMiddlewareTest do
   test "handles requests with any access control headers if option is empty", state do
 
       current = Application.get_env(:spacesuit, :cors)
-      Application.put_env(:spacesuit, :cors, Map.merge(current, %{access_control_request_headers: nil}))
+      Application.put_env(:spacesuit, :cors, Map.merge(current, %{allowed_http_headers: nil}))
 
       req = Map.merge(
       state[:req],

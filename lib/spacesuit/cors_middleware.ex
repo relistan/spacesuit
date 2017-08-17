@@ -116,7 +116,7 @@ defmodule Spacesuit.CorsMiddleware do
   end
 
   # Do we have headers we're allowed to process?
-  def verify_access_control_request_headers(req) do
+  def verify_allowed_http_headers(req) do
     # Access control request headers come jammed into a single string
     acr_headers = (req[:headers]["access-control-request-headers"] || "")
     |> String.split(",")
@@ -139,7 +139,8 @@ defmodule Spacesuit.CorsMiddleware do
   end
 
   defp valid_control_headers?(headers) do
-    MapSet.size(access_control_request_headers()) == 0 || MapSet.subset?(headers, access_control_request_headers())
+    allowed_headers = allowed_http_headers()
+    MapSet.size(allowed_headers) == 0 || MapSet.subset?(headers, allowed_headers)
   end
 
   defp process_cors(origin, method, req) do
@@ -159,7 +160,7 @@ defmodule Spacesuit.CorsMiddleware do
   end
 
   def handle_options_method(origin, method, req) do
-    case verify_access_control_request_headers(req) do
+    case verify_allowed_http_headers(req) do
       {:ok, allow_headers} ->
         method = String.to_atom(req[:headers]["access-control-request-method"] || "")
         if supported_http_method?(method) && allowed_http_method?(method) do
@@ -237,8 +238,8 @@ defmodule Spacesuit.CorsMiddleware do
       )
   end
 
-  defp access_control_request_headers do
-    (cors()[:access_control_request_headers] || [])
+  defp allowed_http_headers do
+    (cors()[:allowed_http_headers] || [])
     |> Enum.map(&String.downcase/1)
     |> Enum.into(MapSet.new)
   end

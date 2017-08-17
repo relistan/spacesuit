@@ -70,17 +70,19 @@ config :spacesuit, session_service: %{ enabled: false }
 # Configuration for the CORS middleware
 config :spacesuit, cors: %{
   # Main kill switch to disable the middleware
-  enabled: false, 
-  # Required prefix match in order to process CORS
-  #path_prefixes: ["/matched"],
-  # Maximum age for preflight requests
+  enabled: false,
+  # The path prefixes to filter.
+  #path_prefixes: ["/"],
+  # The maximum amount of time the CORS meta data should be cached by the client
   #preflight_max_age: "3600",
-  # Headers we validate for CORS
-  #access_control_request_headers: ["X-Header1", "X-Header2"],
+  # The allowed HTTP headers. If unspecified, all headers are allowed.
+  #allowed_http_headers: ["X-Header1", "X-Header2"],
   # Allow access from any origin
   #any_origin_allowed: false,
-  # Only allow CORS responses for these methods
-  # allowed_http_methods: [:GET, :POST]
+  # The allowed HTTP methods. If unspecified, all methods are allowed.
+  # allowed_http_methods: [:GET, :POST],
+  # The allowed origins. If unspecified, all origins are allowed.
+  #allowed_origins = ["http://localhost"]
 }
 
 # It is also possible to import configuration files, relative to this

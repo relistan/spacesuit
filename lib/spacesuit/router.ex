@@ -35,8 +35,8 @@ defmodule Spacesuit.Router do
 
     compiled_opts =
       opts
-      |> process_verbs
       |> add_all_actions
+      |> process_verbs
       |> process_headers
 
     {route, Spacesuit.ProxyHandler, compiled_opts}
@@ -51,8 +51,8 @@ defmodule Spacesuit.Router do
   defp process_verbs(opts) do
     @http_verbs |> List.foldl(opts, fn(verb, memo) ->
       case Map.fetch(opts, verb) do
-        {:ok, route_map} ->
-          Map.merge(memo, compile(verb, route_map))
+        {:ok, map} ->
+          Map.put(memo, verb, compile(map))
 
         :error ->
           memo # do nothing, we just don't have this verb
@@ -83,7 +83,7 @@ defmodule Spacesuit.Router do
     case Map.fetch(opts, :all_actions) do
       {:ok, route_map}->
         @http_verbs |> List.foldl(opts, fn(verb, memo) ->
-          Map.merge(memo, compile(verb, route_map))
+          Map.put(memo, verb, compile(route_map))
         end)
 
       :error -> opts
@@ -113,11 +113,13 @@ defmodule Spacesuit.Router do
     end
   end
 
-  def build(method, qs, route_map, bindings, path_info) do
+  # Construct the upstream URL using the route_map which contains
+  # the compiled routes, and the request method, query string, and
+  # bindings.
+  def build(method, qs, state, bindings, path_info) do
     verb = method |> String.upcase |> String.to_atom
 
-    uri = Map.get(route_map, :uri)
-    map = Map.get(route_map, verb)
+    [ uri, map ] = Map.get(state, verb)
 
     path = map
       |> Enum.map(fn(x) -> x.(bindings, path_info) end)
@@ -136,10 +138,10 @@ defmodule Spacesuit.Router do
     %{ path: path, query: qs }
   end
 
-  def compile(verb, route_map) do
-    uri = URI.parse(to_string(route_map))
+  def compile(map) do
+    uri = URI.parse(to_string(map))
 
-    map = if uri.path != nil do
+    if uri.path != nil do
       # Order of split strings is important so we end up
       # with output like "/part1/part2" vs "/part1//part2"
       String.split(uri.path, ["/[.", "[.", "/"])
@@ -147,7 +149,5 @@ defmodule Spacesuit.Router do
     else
       [] 
     end
-
-    Map.put(%{ uri: uri }, verb, map)
   end
 end

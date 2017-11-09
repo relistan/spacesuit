@@ -10,7 +10,7 @@ defmodule Spacesuit.Mixfile do
     [app: :spacesuit,
      version: "0.1.0",
      elixir: "~> 1.4",
-     build_embedded: build_embedded?(),
+     #build_embedded: build_embedded?(),
      start_permanent: Mix.env == :prod,
      deps: deps(),
      test_coverage: [tool: ExCoveralls],
@@ -54,7 +54,8 @@ defmodule Spacesuit.Mixfile do
 
       # Test only
       {:excoveralls, "~> 0.6", only: :test},
-      {:mock, "~> 0.1.1", only: :test}
+      {:mock, "~> 0.1.1", only: :test},
+      {:apex, "~>1.1.0"}
     ]
   end
 

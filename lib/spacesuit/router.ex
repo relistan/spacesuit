@@ -35,9 +35,9 @@ defmodule Spacesuit.Router do
 
     compiled_opts =
       opts
-      |> add_all_actions
       |> process_verbs
       |> process_headers
+      |> add_all_actions
 
     {route, Spacesuit.ProxyHandler, compiled_opts}
   end

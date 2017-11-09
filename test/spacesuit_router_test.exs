@@ -51,7 +51,7 @@ defmodule SpacesuitRouterTest do
 
   test "that build() can process the output from compile when only a path_map exists" do
     uri_str = "http://example.com/users/[...]"
-    route_map = Spacesuit.Router.compile(:GET, uri_str)
+    route_map = %{ GET: [ URI.parse(uri_str), Spacesuit.Router.compile(uri_str) ] }
 
     result = Spacesuit.Router.build("get", "", route_map, [], ["123"])
     assert result == "http://example.com/users/123"

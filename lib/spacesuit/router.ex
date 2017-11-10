@@ -141,7 +141,7 @@ defmodule Spacesuit.Router do
   def compile(map) do
     uri = URI.parse(to_string(map))
 
-    if uri.path != nil do
+    compiled_map = if uri.path != nil do
       # Order of split strings is important so we end up
       # with output like "/part1/part2" vs "/part1//part2"
       String.split(uri.path, ["/[.", "[.", "/"])
@@ -149,5 +149,7 @@ defmodule Spacesuit.Router do
     else
       [] 
     end
+
+    [ uri, compiled_map ]
   end
 end

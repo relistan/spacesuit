@@ -34,16 +34,19 @@ defmodule SpacesuitRouterTest do
     assert [] != Spacesuit.Router.transform_routes(state[:routes])
   end
 
-  test "that compiling routes returns a list of functions" do
+  test "that compiling routes returns a uri and list of functions" do
     uri_str = "http://example.com/users/:user_id"
 
-    route_map = Spacesuit.Router.compile(uri_str)
+    [ uri, route_map ] = Spacesuit.Router.compile(uri_str)
     assert Enum.all?(route_map, fn(x) -> is_function(x, 2) end)
+
+    parsed_uri = URI.parse(uri)
+    assert parsed_uri.host == "example.com"
   end
 
   test "that build() can process the output from compile" do
     uri_str = "http://example.com/users/:user_id[...]"
-    route_map = %{ GET: [ URI.parse(uri_str), Spacesuit.Router.compile(uri_str) ] }
+    route_map = %{ GET: Spacesuit.Router.compile(uri_str) }
 
     result = Spacesuit.Router.build("get", "", route_map, [user_id: 123], ["doc"])
     assert result == "http://example.com/users/123/doc"
@@ -51,7 +54,7 @@ defmodule SpacesuitRouterTest do
 
   test "that build() can process the output from compile when only a path_map exists" do
     uri_str = "http://example.com/users/[...]"
-    route_map = %{ GET: [ URI.parse(uri_str), Spacesuit.Router.compile(uri_str) ] }
+    route_map = %{ GET: Spacesuit.Router.compile(uri_str) }
 
     result = Spacesuit.Router.build("get", "", route_map, [], ["123"])
     assert result == "http://example.com/users/123"

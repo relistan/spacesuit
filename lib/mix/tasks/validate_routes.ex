@@ -13,6 +13,7 @@ defmodule Mix.Tasks.ValidateRoutes do
     routes = Spacesuit.Router.load_routes
 
     validate_routes(routes)
+
     case :cowboy_router.compile(routes) do
       {:error, _} -> IO.puts "ERROR: Cowboy unable to compile routes!"
       _ -> IO.puts "OK: Cowboy compiled successfully"
@@ -35,9 +36,23 @@ defmodule Mix.Tasks.ValidateRoutes do
       raise "Expected route function map, found #{inspect(args)}"
     end
 
-    for {key, _value} <- args do
+    for {key, value} <- args do
       if !(key in @valid_map_keys) do
         raise "Expected key to be one of #{inspect(@valid_map_keys)}, got #{inspect(key)}"
+      end
+
+      # If this is an http verb, let's make sure we got a proper URI passed to us
+      if key in Spacesuit.Router.get_http_verbs do
+        if is_nil(value) do
+          raise "Invalid route URI: nil"
+        end
+
+        [ uri, _map ] = value
+        case uri do
+          %URI{authority: _auth, path: _path, scheme: _scheme} -> :ok
+        _ ->
+          raise "Constructed URI for #{key} appears to be incomplete! #{inspect(args[:uri])}"
+       end
       end
     end
 
@@ -47,12 +62,6 @@ defmodule Mix.Tasks.ValidateRoutes do
 
     if !is_nil(args[:middleware]) && !is_map(args[:middleware]) do
         raise "Expected middleware option is not a map, #{inspect(args[:middleware])}"
-    end
-
-    case args[:uri] do
-      %URI{authority: _auth, path: _path, scheme: _scheme} -> :ok
-      _ ->
-        raise "Constructed URI appears to be incomplete! #{inspect(args[:uri])}"
     end
   end
 

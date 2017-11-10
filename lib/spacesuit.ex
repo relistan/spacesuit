@@ -14,8 +14,6 @@ defmodule Spacesuit do
 
     dispatch = Spacesuit.Router.load_routes |> :cowboy_router.compile
 
-    Apex.ap dispatch
-
     {:ok, _} = :cowboy.start_clear(
         :http, 100, [port: @http_port],
         %{

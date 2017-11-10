@@ -53,7 +53,7 @@ defmodule MixTasksValidateRoutesTest do
 
     test "invalid uri arg should throw" do
         assert_raise RuntimeError, fn ->
-            Mix.Tasks.ValidateRoutes.validate_one_route({"/path", :handler, %{ uri: nil }})
+            Mix.Tasks.ValidateRoutes.validate_one_route({"/path", :handler, %{ GET: nil }})
         end
     end
 end

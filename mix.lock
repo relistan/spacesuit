@@ -1,5 +1,6 @@
 %{"afunix": {:git, "https://github.com/tonyrog/afunix.git", "37611258f5446a578391c23def6ca4565c4c67e7", [tag: "1.0"]},
   "amqp_client": {:git, "git://github.com/jbrisbin/amqp_client.git", "0878abe6b40cc202b35d86fae32698598c022f0d", [tag: "rabbitmq-3.3.5"]},
+  "apex": {:hex, :apex, "1.1.0", "d7a03b8d3e4d9241bd33d986f7bc440f32987ca92dfbec07d491f85593791c82", [:mix], []},
   "base64url": {:hex, :base64url, "0.0.1", "36a90125f5948e3afd7be97662a1504b934dd5dac78451ca6e9abf85a10286be", [:rebar], []},
   "bear": {:hex, :bear, "0.8.3", "866002127a97932720a0d475d8582c98ec5fb78db3a18dfe7eaf91594d9024b8", [:rebar3], []},
   "certifi": {:hex, :certifi, "1.0.0", "1c787a85b1855ba354f0b8920392c19aa1d06b0ee1362f9141279620a5be2039", [:rebar3], []},

@@ -54,7 +54,8 @@ defmodule Spacesuit.Mixfile do
 
       # Test only
       {:excoveralls, "~> 0.6", only: :test},
-      {:mock, "~> 0.1.1", only: :test}
+      {:mock, "~> 0.1.1", only: :test},
+      {:apex, "~>1.1.0"}
     ]
   end
 

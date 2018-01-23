@@ -3,29 +3,33 @@ defmodule SpacesuitRouterTest do
   doctest Spacesuit.Router
 
   setup_all do
-    routes =
-        %{
-          'oh-my.example.com' =>
-            [{'/somewhere', %{
-              description: 'oh my example',
-              all_actions: 'http://example.com',
-              add_headers: %{
-                'X-Something-Invalid': 123,
-                'X-Something-Awesome': "awesome"
-              }
-            }}],
-          ':_' =>
-            [{'/users/:user_id', %{
-              description: 'users to localhost',
-              GET: 'http://localhost:9090/:user_id',
-              POST: 'http://example.com:9090/:user_id',
-              OPTIONS: 'http://ui.example.com:9090/:user_id',
-            }},
-            {'/[...]', %{
-              description: 'others to hacker news',
-              destination: 'https://news.ycombinator.com',
-            }}]
-        }
+    routes = %{
+      'oh-my.example.com' => [
+        {'/somewhere',
+         %{
+           description: 'oh my example',
+           all_actions: 'http://example.com',
+           add_headers: %{
+             "X-Something-Invalid": 123,
+             "X-Something-Awesome": "awesome"
+           }
+         }}
+      ],
+      ':_' => [
+        {'/users/:user_id',
+         %{
+           description: 'users to localhost',
+           GET: 'http://localhost:9090/:user_id',
+           POST: 'http://example.com:9090/:user_id',
+           OPTIONS: 'http://ui.example.com:9090/:user_id'
+         }},
+        {'/[...]',
+         %{
+           description: 'others to hacker news',
+           destination: 'https://news.ycombinator.com'
+         }}
+      ]
+    }
 
     {:ok, routes: routes}
   end
@@ -37,8 +41,8 @@ defmodule SpacesuitRouterTest do
   test "that compiling routes returns a uri and list of functions" do
     uri_str = "http://example.com/users/:user_id"
 
-    [ uri, route_map ] = Spacesuit.Router.compile(uri_str)
-    assert Enum.all?(route_map, fn(x) -> is_function(x, 2) end)
+    [uri, route_map] = Spacesuit.Router.compile(uri_str)
+    assert Enum.all?(route_map, fn x -> is_function(x, 2) end)
 
     parsed_uri = URI.parse(uri)
     assert parsed_uri.host == "example.com"
@@ -46,7 +50,7 @@ defmodule SpacesuitRouterTest do
 
   test "that build() can process the output from compile" do
     uri_str = "http://example.com/users/:user_id[...]"
-    route_map = %{ GET: Spacesuit.Router.compile(uri_str) }
+    route_map = %{GET: Spacesuit.Router.compile(uri_str)}
 
     result = Spacesuit.Router.build("get", "", route_map, [user_id: 123], ["doc"])
     assert result == "http://example.com/users/123/doc"
@@ -54,7 +58,7 @@ defmodule SpacesuitRouterTest do
 
   test "that build() can process the output from compile when only a path_map exists" do
     uri_str = "http://example.com/users/[...]"
-    route_map = %{ GET: Spacesuit.Router.compile(uri_str) }
+    route_map = %{GET: Spacesuit.Router.compile(uri_str)}
 
     result = Spacesuit.Router.build("get", "", route_map, [], ["123"])
     assert result == "http://example.com/users/123"
@@ -73,28 +77,28 @@ defmodule SpacesuitRouterTest do
 
   test "transforming one route with http verbs", state do
     %{
-      ':_' => [ route | _ ]
+      ':_' => [route | _]
     } = state[:routes]
 
     output = Spacesuit.Router.transform_one_route(route)
-    { _route, _handler, handler_opts } = output
+    {_route, _handler, handler_opts} = output
 
-    assert [ _one, _two ] = Map.get(handler_opts, :GET)
+    assert [_one, _two] = Map.get(handler_opts, :GET)
   end
 
   test "transforming one route with :all_actions" do
-    route = {'/users/:user_id',
-      %{
-        description: 'users to localhost',
-        all_actions: 'http://localhost:9090/:user_id',
-       }
-    }
+    route =
+      {'/users/:user_id',
+       %{
+         description: 'users to localhost',
+         all_actions: 'http://localhost:9090/:user_id'
+       }}
 
     output = Spacesuit.Router.transform_one_route(route)
-    { _route, _handler, handler_opts } = output
+    {_route, _handler, handler_opts} = output
 
-    assert [ _one, _two ] = Map.get(handler_opts, :GET)
-    assert [ _one, _two ] = Map.get(handler_opts, :OPTIONS)
+    assert [_one, _two] = Map.get(handler_opts, :GET)
+    assert [_one, _two] = Map.get(handler_opts, :OPTIONS)
   end
 
   test "adds health route when configured to", state do
@@ -115,17 +119,17 @@ defmodule SpacesuitRouterTest do
 
   test "generates routes that are properly ordered", state do
     Application.put_env(:spacesuit, :routes, state[:routes])
-    assert {'oh-my.example.com', _} = List.first(Spacesuit.Router.load_routes)
-    assert {':_', _} = List.last(Spacesuit.Router.load_routes)
+    assert {'oh-my.example.com', _} = List.first(Spacesuit.Router.load_routes())
+    assert {':_', _} = List.last(Spacesuit.Router.load_routes())
   end
 
   test "transforms headers into String:String maps", state do
     %{
-      'oh-my.example.com' => [ route | _ ]
+      'oh-my.example.com' => [route | _]
     } = state[:routes]
 
     output = Spacesuit.Router.transform_one_route(route)
-    { _route, _handler, handler_opts } = output
+    {_route, _handler, handler_opts} = output
 
     assert map_size(handler_opts[:add_headers]) == 2
     assert handler_opts[:add_headers]["X-Something-Invalid"] == "123"

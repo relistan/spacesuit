@@ -3,20 +3,20 @@ defmodule Mix.Tasks.ValidateRoutes do
 
   @shortdoc "Validate the routes for an environment"
 
-  @valid_map_keys Spacesuit.Router.get_http_verbs ++
-    [:description, :destination, :all_actions, :uri, :add_headers, :middleware]
+  @valid_map_keys Spacesuit.Router.get_http_verbs() ++
+                    [:description, :destination, :all_actions, :uri, :add_headers, :middleware]
 
   def run(_) do
-    IO.puts "\nValidating Spacesuit Routes"
-    IO.puts "----------------------------\n"
+    IO.puts("\nValidating Spacesuit Routes")
+    IO.puts("----------------------------\n")
 
-    routes = Spacesuit.Router.load_routes
+    routes = Spacesuit.Router.load_routes()
 
     validate_routes(routes)
 
     case :cowboy_router.compile(routes) do
-      {:error, _} -> IO.puts "ERROR: Cowboy unable to compile routes!"
-      _ -> IO.puts "OK: Cowboy compiled successfully"
+      {:error, _} -> IO.puts("ERROR: Cowboy unable to compile routes!")
+      _ -> IO.puts("OK: Cowboy compiled successfully")
     end
   end
 
@@ -26,7 +26,7 @@ defmodule Mix.Tasks.ValidateRoutes do
       raise "Expected path matcher, found #{inspect(path)}"
     end
 
-    IO.puts "Checking: #{path}"
+    IO.puts("Checking: #{path}")
 
     if !is_atom(handler) do
       raise "Expected handler module, found #{inspect(handler)}"
@@ -42,48 +42,51 @@ defmodule Mix.Tasks.ValidateRoutes do
       end
 
       # If this is an http verb, let's make sure we got a proper URI passed to us
-      if key in Spacesuit.Router.get_http_verbs do
+      if key in Spacesuit.Router.get_http_verbs() do
         if is_nil(value) do
           raise "Invalid route URI: nil"
         end
 
-        [ uri, _map ] = value
+        [uri, _map] = value
+
         case uri do
-          %URI{authority: _auth, path: _path, scheme: _scheme} -> :ok
-        _ ->
-          raise "Constructed URI for #{key} appears to be incomplete! #{inspect(args[:uri])}"
-       end
+          %URI{authority: _auth, path: _path, scheme: _scheme} ->
+            :ok
+
+          _ ->
+            raise "Constructed URI for #{key} appears to be incomplete! #{inspect(args[:uri])}"
+        end
       end
     end
 
     if !is_nil(args[:add_headers]) && !is_map(args[:add_headers]) do
-        raise "Expected add_headers option is not a map, #{inspect(args[:add_headers])}"
+      raise "Expected add_headers option is not a map, #{inspect(args[:add_headers])}"
     end
 
     if !is_nil(args[:middleware]) && !is_map(args[:middleware]) do
-        raise "Expected middleware option is not a map, #{inspect(args[:middleware])}"
+      raise "Expected middleware option is not a map, #{inspect(args[:middleware])}"
     end
   end
 
   # The health route has a different format, so just match that one
   def validate_one_route({["/health"], [], Spacesuit.HealthHandler, %{}}) do
-      :ok
+    :ok
   end
 
   def validate_routes(routes) do
     routes
-      |> Enum.each(fn {host, routes} ->
-           if !is_binary(host) do
-             raise "Expected host matcher, found #{inspect(host)}"
-           end
+    |> Enum.each(fn {host, routes} ->
+      if !is_binary(host) do
+        raise "Expected host matcher, found #{inspect(host)}"
+      end
 
-           for route <- routes do
-             validate_one_route(route)
-           end
-         end)
+      for route <- routes do
+        validate_one_route(route)
+      end
+    end)
 
-    IO.puts "----------------------------\n"
-    IO.puts "Generated routes are formatted properly"
+    IO.puts("----------------------------\n")
+    IO.puts("Generated routes are formatted properly")
     :ok
   end
 end

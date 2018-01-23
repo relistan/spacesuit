@@ -6,26 +6,26 @@ defmodule Spacesuit.ProxyHandler do
   @http_server Application.get_env(:spacesuit, :http_server)
 
   # Callback from the Cowboy handler
-  @timed(key: "timed.proxyHandler-handle", units: :millisecond)
+  @timed key: "timed.proxyHandler-handle", units: :millisecond
   def init(req, state) do
     route_name = Map.get(state, :description, "un-named")
-    Logger.info "Processing '#{route_name}'"
+    Logger.info("Processing '#{route_name}'")
 
-    %{ method: method, headers: headers, peer: peer } = req
+    %{method: method, headers: headers, peer: peer} = req
 
     # Prepare some things we'll need
-    ups_url     = build_upstream_url(req, state)
-    peer        = format_peer(peer)
+    ups_url = build_upstream_url(req, state)
+    peer = format_peer(peer)
     all_headers = add_headers_to(headers, state[:add_headers])
     ups_headers = cowboy_to_hackney(all_headers, peer, @http_server.uri(req))
 
     # Make the proxy request
     req = handle_request(req, ups_url, ups_headers, method)
-    
+
     {:ok, req, state}
   end
 
-  @timed(key: "timed.proxyHandler-proxyRequest", units: :millisecond)
+  @timed key: "timed.proxyHandler-proxyRequest", units: :millisecond
   def handle_request(req, ups_url, ups_headers, method) do
     case request_upstream(method, ups_url, ups_headers, req) do
       {:ok, status, headers, upstream} ->
@@ -50,7 +50,7 @@ defmodule Spacesuit.ProxyHandler do
         error_reply(req, 400, "Bad Request")
 
       unexpected ->
-        Logger.warn "Received unexpected upstream response: '#{inspect(unexpected)}'"
+        Logger.warn("Received unexpected upstream response: '#{inspect(unexpected)}'")
         req
     end
   end
@@ -75,12 +75,10 @@ defmodule Spacesuit.ProxyHandler do
   # Run the route builder to generate the correct upstream URL based
   # on the bindings and the request method/http verb.
   def build_upstream_url(req, state) do
-    %{ bindings: bindings, method: method,
-       qs: qs, path_info: path_info } = req
+    %{bindings: bindings, method: method, qs: qs, path_info: path_info} = req
 
     case Map.fetch(state, :destination) do
       {:ok, destination} -> destination
-
       :error -> Spacesuit.Router.build(method, qs, state, bindings, path_info)
     end
   end
@@ -88,6 +86,7 @@ defmodule Spacesuit.ProxyHandler do
   # Make the request to the destination using Hackney
   def request_upstream(method, url, ups_headers, downstream) do
     method = String.downcase(method)
+
     if @http_server.has_body(downstream) do
       # This reads the whole incoming body into RAM. TODO see if we can not do that.
       case @http_server.read_body(downstream) do
@@ -96,7 +95,7 @@ defmodule Spacesuit.ProxyHandler do
 
         {:more, _body, _downstream} ->
           # TODO this doesn't handle large bodies
-          Logger.error "Request body too large! Size was #{:cowboy_req.body_length(downstream)}"
+          Logger.error("Request body too large! Size was #{:cowboy_req.body_length(downstream)}")
       end
     else
       @http_client.request(method, url, ups_headers, [], [])
@@ -106,9 +105,9 @@ defmodule Spacesuit.ProxyHandler do
   # Convert headers from Hackney list format to Cowboy map format.
   # Drops some headers we don't want to pass through.
   def hackney_to_cowboy(headers) do
-    headers 
-      |> List.foldl(%{}, fn({k,v}, memo) -> Map.put(memo, k, v) end)
-      |> Map.drop([ "Date", "date" ])
+    headers
+    |> List.foldl(%{}, fn {k, v}, memo -> Map.put(memo, k, v) end)
+    |> Map.drop(["Date", "date"])
   end
 
   # Format the peer from the request into a string that
@@ -117,26 +116,26 @@ defmodule Spacesuit.ProxyHandler do
     {ip, _port} = peer
 
     ip
-      |> Tuple.to_list
-      |> Enum.map(&(Integer.to_string(&1)))
-      |> Enum.join(".")
+    |> Tuple.to_list()
+    |> Enum.map(&Integer.to_string(&1))
+    |> Enum.join(".")
   end
 
   # Take static headers from the config and add them to this request
   def add_headers_to(headers, added_headers) do
-    Map.merge((headers || %{}), (added_headers || %{}))
+    Map.merge(headers || %{}, added_headers || %{})
   end
 
   # Convery headers from Cowboy map format to Hackney list format
   def cowboy_to_hackney(headers, peer, url) do
-    [[_, _, host | _ ] | _ ] = url
+    [[_, _, host | _] | _] = url
 
     (headers || %{})
-      |> Map.merge(%{"x-forwarded-for" => peer}, fn (_k, a, b) -> "#{a}, #{b}" end)
-      |> Map.put("x-forwarded-url", url)
-      |> Map.put("x-forwarded-host", host)
-      |> Map.drop([ "host", "Host" ])
-      |> Map.to_list
+    |> Map.merge(%{"x-forwarded-for" => peer}, fn _k, a, b -> "#{a}, #{b}" end)
+    |> Map.put("x-forwarded-url", url)
+    |> Map.put("x-forwarded-host", host)
+    |> Map.drop(["host", "Host"])
+    |> Map.to_list()
   end
 
   # Copy data from one connection to the other until there is no more
@@ -145,22 +144,23 @@ defmodule Spacesuit.ProxyHandler do
       {:ok, data} ->
         :ok = @http_server.stream_body(data, :nofin, downstream)
         stream(upstream, downstream)
-      :done -> 
+
+      :done ->
         :ok = @http_server.stream_body(<<>>, :fin, downstream)
         :ok
+
       {:error, reason} ->
-        Logger.error "Error in stream/2: #{reason}"
+        Logger.error("Error in stream/2: #{reason}")
+
       bad ->
-        Logger.error "Unexpected non-match in stream/2! (#{inspect(bad)})"
+        Logger.error("Unexpected non-match in stream/2! (#{inspect(bad)})")
     end
   end
 
   # Send messages back to Cowboy, encoded in the format used
   # by the API
   def error_reply(req, code, message) do
-    msg = Spacesuit.ApiMessage.encode(
-      %Spacesuit.ApiMessage{status: "error", message: message}
-    )
+    msg = Spacesuit.ApiMessage.encode(%Spacesuit.ApiMessage{status: "error", message: message})
     @http_server.reply(code, %{}, msg, req)
   end
 

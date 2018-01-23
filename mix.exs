@@ -46,6 +46,7 @@ defmodule Spacesuit.Mixfile do
       {:hackney, "~> 1.7.1", override: true},
       {:cowboy, github: "extend/cowboy"},
       {:poison, "~> 3.0", override: true},
+      {:jsx, "~> 2.8.0"},
       {:joken, "~> 1.4.1"},
       {:elixometer, github: "pinterest/elixometer"},
       {:exometer_newrelic_reporter, github: "nitro/exometer_newrelic_reporter"},

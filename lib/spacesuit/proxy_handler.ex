@@ -132,9 +132,9 @@ defmodule Spacesuit.ProxyHandler do
     [[_, _, host | _ ] | _ ] = url
 
     (headers || %{})
-      |> Map.put("X-Forwarded-For", peer)
-      |> Map.put("X-Forwarded-Url", url)
-      |> Map.put("X-Forwarded-Host", host)
+      |> Map.merge(%{"x-forwarded-for" => peer}, fn (_k, a, b) -> "#{a}, #{b}" end)
+      |> Map.put("x-forwarded-url", url)
+      |> Map.put("x-forwarded-host", host)
       |> Map.drop([ "host", "Host" ])
       |> Map.to_list
   end

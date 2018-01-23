@@ -44,14 +44,15 @@ defmodule SpacesuitProxyHandlerTest do
     assert %{} == result
   end
 
-  test "converting headers to Hackney format" do
+  test "converting headers to Hackney format and adding proxy info" do
     headers = %{
       "user-agent" => Enum.join([
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:50.0) ",
         "Gecko/20100101 Firefox/50.0"
       ], ""),
       "accept-language" => "en-US,en;q=0.5",
-      "Host" => " localhost:9090"
+      "Host" => " localhost:9090",
+      "x-forwarded-for" => "example.com"
     }
 
     peer = Spacesuit.ProxyHandler.format_peer({{127,0,0,1},32767})
@@ -59,17 +60,17 @@ defmodule SpacesuitProxyHandlerTest do
     original_url = [[["http", 58], "//", "localhost", [58, "8080"]], "/v1/people/123/things", "", ""]
     processed = Spacesuit.ProxyHandler.cowboy_to_hackney(headers, peer, original_url)
 
-    assert {"X-Forwarded-For", "127.0.0.1"} =
-      List.keyfind(processed, "X-Forwarded-For", 0)
+    assert {"x-forwarded-for", "example.com, 127.0.0.1"} =
+      List.keyfind(processed, "x-forwarded-for", 0)
 
     assert {"accept-language", "en-US,en;q=0.5"} =
       List.keyfind(processed, "accept-language", 0)
 
-    assert {"X-Forwarded-Url", ^original_url} =
-      List.keyfind(processed, "X-Forwarded-Url", 0)
+    assert {"x-forwarded-url", ^original_url} =
+      List.keyfind(processed, "x-forwarded-url", 0)
 
-    assert {"X-Forwarded-Host", "localhost"} =
-      List.keyfind(processed, "X-Forwarded-Host", 0)
+    assert {"x-forwarded-host", "localhost"} =
+      List.keyfind(processed, "x-forwarded-host", 0)
 
     assert nil == List.keyfind(processed, "Host", 0)
   end

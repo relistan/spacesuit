@@ -131,7 +131,7 @@ defmodule Spacesuit.CorsMiddleware do
 
       headers ->
         if valid_control_headers?(headers) do
-          {:ok, %{"Access-Control-Allow-Headers" => Enum.join(headers, ",")}}
+          {:ok, %{"access-control-allow-headers" => Enum.join(headers, ",")}}
         else
           :error
         end
@@ -167,7 +167,7 @@ defmodule Spacesuit.CorsMiddleware do
             allow_headers
             |> Map.merge(origin_headers(origin))
             |> Map.merge(preflight_header())
-            |> Map.put("Access-Control-Allow-Methods", Atom.to_string(method))
+            |> Map.put("access-control-allow-methods", Atom.to_string(method))
 
           {:ok, headers}
         else
@@ -184,12 +184,12 @@ defmodule Spacesuit.CorsMiddleware do
   defp origin_headers(origin) do
     if cors()[:any_origin_allowed] do
       %{
-        "Access-Control-Allow-Origin" => "*"
+        "access-control-allow-origin" => "*"
        }
     else
       %{
-        "Access-Control-Allow-Origin" => origin,
-        "Vary" => "Origin"
+        "access-control-allow-origin" => origin,
+        "vary" => "Origin"
       }
     end
   end
@@ -200,7 +200,7 @@ defmodule Spacesuit.CorsMiddleware do
     if is_nil(max_age) || (max_age < 0) do
       %{}
     else
-      %{"Access-Control-Max-Age" => max_age}
+      %{"access-control-max-age" => max_age}
     end
   end
 

@@ -8,18 +8,30 @@ defmodule SpacesuitProxyHandlerTest do
     assert Spacesuit.ProxyHandler.format_peer(peer) == "127.0.0.1"
   end
 
-  test "converting headers to Cowboy format" do
-    headers = [
-      {"cookie", "some-cookie-data"},
-      {"Date", "Sun, 18 Dec 2016 12:12:02 GMT"},
-      {"Host", "localhost"}
-    ]
+  describe "converting headers to Cowboy format" do
+    test "converts headers to a map" do
+      headers = [
+        {"cookie", "some-cookie-data"},
+        {"Date", "Sun, 18 Dec 2016 12:12:02 GMT"},
+        {"Host", "localhost"}
+      ]
 
-    processed = Spacesuit.ProxyHandler.hackney_to_cowboy(headers)
+      processed = Spacesuit.ProxyHandler.hackney_to_cowboy(headers)
+      assert "localhost" = Map.get(processed, "host")
+      assert "not-found" = Map.get(processed, "date", "not-found")
+      assert "some-cookie-data" = Map.get(processed, "cookie", "empty") 
+    end
 
-    assert "localhost" = Map.get(processed, "Host")
-    assert "not-found" = Map.get(processed, "Date", "not-found")
-    assert "some-cookie-data" = Map.get(processed, "cookie", "empty") 
+    test "downcases all the response headers" do
+      headers = [
+        {"cookie", "some-cookie-data"},
+        {"Date", "Sun, 18 Dec 2016 12:12:02 GMT"},
+        {"Host", "localhost"}
+      ]
+
+      processed = Spacesuit.ProxyHandler.hackney_to_cowboy(headers)
+      assert Enum.all?(Map.keys(processed), fn k -> k == String.downcase(k) end)
+    end
   end
 
   test "adding headers specified in the config" do

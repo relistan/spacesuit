@@ -82,6 +82,16 @@ Once you have written your routes, a good step is to run the `mix validate_route
 task, which will load the routes for the current `MIX_ENV` and check them all
 for correctness.
 
+CORS Middleware
+---------------
+
+Spacesuit contains a CORS middleware which handles offloading CORS support from
+backend services. You can enable this in the config following the examples set
+there. **Note** if upstream services have CORS handling enabled internally and
+are sending CORS headers, responses from those services will override any from
+Spacesuit, even if CORS is enabled, *except* for `OPTIONS` requests which will
+be served from Spacesuit all the time if CORS support is enabled for an endpoint.
+
 Coverage
 --------
 

@@ -106,7 +106,7 @@ defmodule Spacesuit.ProxyHandler do
   # Drops some headers we don't want to pass through.
   def hackney_to_cowboy(headers) do
     headers
-    |> List.foldl(%{}, fn {k, v}, memo -> Map.put(memo, k, v) end)
+    |> List.foldl(%{}, fn {k, v}, memo -> Map.put(memo, String.downcase(k), v) end)
     |> Map.drop(["Date", "date"])
   end
 
@@ -126,7 +126,7 @@ defmodule Spacesuit.ProxyHandler do
     Map.merge(headers || %{}, added_headers || %{})
   end
 
-  # Convery headers from Cowboy map format to Hackney list format
+  # Convert headers from Cowboy map format to Hackney list format
   def cowboy_to_hackney(headers, peer, url) do
     [[_, _, host | _] | _] = url
 

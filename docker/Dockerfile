@@ -1,4 +1,4 @@
-FROM elixir:1.4.2
+FROM elixir:1.6.0
 
 ADD . /spacesuit
 

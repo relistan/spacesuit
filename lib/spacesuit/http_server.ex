@@ -1,12 +1,12 @@
 defmodule HttpServer do
-  @callback stream_reply(Integer.t, List.t, Map.t) :: any
-  @callback stream_body(String.t, Integer.t, any) :: any
-  @callback reply(Integer.t, List.t, Atom.t, any) :: any
-  @callback has_body(Map.t) :: Boolean.t
-  @callback read_body(Map.t) :: any
-  @callback body_length(Map.t) :: Integer.t
-  @callback uri(Map.t) :: String.t
-  @callback set_resp_headers(Map.t, Map.t) :: any
+  @callback stream_reply(Integer.t(), List.t(), Map.t()) :: any
+  @callback stream_body(String.t(), Integer.t(), any) :: any
+  @callback reply(Integer.t(), List.t(), Atom.t(), any) :: any
+  @callback has_body(Map.t()) :: Boolean.t()
+  @callback read_body(Map.t()) :: any
+  @callback body_length(Map.t()) :: Integer.t()
+  @callback uri(Map.t()) :: String.t()
+  @callback set_resp_headers(Map.t(), Map.t()) :: any
 end
 
 defmodule Spacesuit.HttpServer.Cowboy do
@@ -86,11 +86,9 @@ defmodule Spacesuit.HttpServer.Mock do
   end
 
   def set_resp_headers(headers, req) do
-    {_, with_resp_headers} = Map.get_and_update(
-      req,
-      :resp_headers,
-      fn h -> {h, Map.merge(h || %{}, headers)} end
-    )
+    {_, with_resp_headers} =
+      Map.get_and_update(req, :resp_headers, fn h -> {h, Map.merge(h || %{}, headers)} end)
+
     with_resp_headers
   end
 end

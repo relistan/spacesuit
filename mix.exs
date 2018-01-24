@@ -3,18 +3,20 @@ defmodule Spacesuit.Mixfile do
   use Mix.Config
 
   def build_embedded? do
-    Mix.env == :prod || Mix.env == :dev
+    Mix.env() == :prod || Mix.env() == :dev
   end
 
   def project do
-    [app: :spacesuit,
-     version: "0.1.0",
-     elixir: "~> 1.4",
-     build_embedded: build_embedded?(),
-     start_permanent: Mix.env == :prod,
-     deps: deps(),
-     test_coverage: [tool: ExCoveralls],
-     preferred_cli_env: [coveralls: :test] ]
+    [
+      app: :spacesuit,
+      version: "0.1.0",
+      elixir: "~> 1.4",
+      build_embedded: build_embedded?(),
+      start_permanent: Mix.env() == :prod,
+      deps: deps(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [coveralls: :test]
+    ]
   end
 
   # Configuration for the OTP application
@@ -23,11 +25,15 @@ defmodule Spacesuit.Mixfile do
   def application do
     [
       applications: [
-        :logger, :cowboy, :hackney, :crypto,
-        :jose, :exometer_newrelic_reporter,
+        :logger,
+        :cowboy,
+        :hackney,
+        :crypto,
+        :jose,
+        :exometer_newrelic_reporter,
         :elixometer
       ],
-      mod: { Spacesuit, [] }
+      mod: {Spacesuit, []}
     ]
   end
 
@@ -46,6 +52,7 @@ defmodule Spacesuit.Mixfile do
       {:hackney, "~> 1.7.1", override: true},
       {:cowboy, github: "extend/cowboy"},
       {:poison, "~> 3.0", override: true},
+      {:jsx, "~> 2.8.0"},
       {:joken, "~> 1.4.1"},
       {:elixometer, github: "pinterest/elixometer"},
       {:exometer_newrelic_reporter, github: "nitro/exometer_newrelic_reporter"},

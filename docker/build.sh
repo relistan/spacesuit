@@ -13,4 +13,4 @@ TAG=${TAG::7}
 docker tag gonitro/spacesuit gonitro/spacesuit:latest
 docker tag gonitro/spacesuit gonitro/spacesuit:$TAG
 docker push gonitro/spacesuit:$TAG
-docker push gonitro/spacesuit:latest
+# Travis may push latest directly

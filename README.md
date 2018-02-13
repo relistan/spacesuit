@@ -36,6 +36,9 @@ You need to have Elixir and the BEAM VM installed. On OSX the easiest way to do
 that is to `brew install elixir`. Next you need to install dependencies, with
 `mix deps.get`. Now you're ready to roll.
 
+*Note*: To run `mix compile` or `mix test` you also have to install Rebar3, the Erlang build system.
+On OSX, use `brew install rebar` to install it.
+
 Running
 -------
 

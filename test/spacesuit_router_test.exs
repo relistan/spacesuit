@@ -81,7 +81,7 @@ defmodule SpacesuitRouterTest do
     } = state[:routes]
 
     output = Spacesuit.Router.transform_one_route(route)
-    {_route, _handler, handler_opts} = output
+    {_route, [], _handler, handler_opts} = output
 
     assert [_one, _two] = Map.get(handler_opts, :GET)
   end
@@ -95,10 +95,26 @@ defmodule SpacesuitRouterTest do
        }}
 
     output = Spacesuit.Router.transform_one_route(route)
-    {_route, _handler, handler_opts} = output
+    {_route, [], _handler, handler_opts} = output
 
     assert [_one, _two] = Map.get(handler_opts, :GET)
     assert [_one, _two] = Map.get(handler_opts, :OPTIONS)
+  end
+
+  test "transforming one route with :constraints" do
+    route =
+      {'/users/:user_id',
+        %{
+          description: 'users to localhost',
+          GET: 'http://localhost:9090/:user_id',
+          constraints: [{:user_id, :int}]
+        }}
+
+    output = Spacesuit.Router.transform_one_route(route)
+    {_route, constraint, _handler, handler_opts} = output
+
+    assert [_one, _two] = Map.get(handler_opts, :GET)
+    assert [{:user_id, :int}] = constraint
   end
 
   test "adds health route when configured to", state do
@@ -112,7 +128,7 @@ defmodule SpacesuitRouterTest do
     Application.put_env(:spacesuit, :health_route, %{enabled: false, path: "/health"})
     [first_route | _] = Spacesuit.Router.transform_routes(state[:routes])
 
-    {':_', [{route_path, handler, _map} | _]} = first_route
+    {':_', [{route_path, [], handler, _map} | _]} = first_route
     assert "/health" != route_path
     assert Spacesuit.HealthHandler != handler
   end
@@ -129,7 +145,7 @@ defmodule SpacesuitRouterTest do
     } = state[:routes]
 
     output = Spacesuit.Router.transform_one_route(route)
-    {_route, _handler, handler_opts} = output
+    {_route, [], _handler, handler_opts} = output
 
     assert map_size(handler_opts[:add_headers]) == 2
     assert handler_opts[:add_headers]["X-Something-Invalid"] == "123"

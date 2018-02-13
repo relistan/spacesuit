@@ -4,7 +4,7 @@ defmodule Mix.Tasks.ValidateRoutes do
   @shortdoc "Validate the routes for an environment"
 
   @valid_map_keys Spacesuit.Router.get_http_verbs() ++
-                    [:description, :destination, :all_actions, :uri, :add_headers, :middleware]
+                    [:description, :destination, :all_actions, :uri, :add_headers, :middleware, :constraints]
 
   def run(_) do
     IO.puts("\nValidating Spacesuit Routes")
@@ -20,8 +20,13 @@ defmodule Mix.Tasks.ValidateRoutes do
     end
   end
 
+  # The health route has a different format, so just match that one
+  def validate_one_route({["/health"], [], Spacesuit.HealthHandler, %{}}) do
+    :ok
+  end
+
   # All the generated routes match this pattern
-  def validate_one_route({path, handler, args}) do
+  def validate_one_route({path, constraints, handler, args}) do
     if !is_binary(path) do
       raise "Expected path matcher, found #{inspect(path)}"
     end
@@ -30,6 +35,21 @@ defmodule Mix.Tasks.ValidateRoutes do
 
     if !is_atom(handler) do
       raise "Expected handler module, found #{inspect(handler)}"
+    end
+
+    if !is_list(constraints) do
+      raise "Expected list of constraints, found #{inspect(constraints)}"
+    end
+
+    for {path_variable, function} <- constraints do
+      # This should probably also test if the path contains that path_variable
+      if !is_atom(path_variable) do
+        raise "Expected path variable in constraint, found #{inspect(path_variable)}"
+      end
+
+      if !is_function(function) do
+        raise "Expected function to test constraint, found #{inspect(function)}"
+      end
     end
 
     if !is_map(args) do
@@ -66,11 +86,6 @@ defmodule Mix.Tasks.ValidateRoutes do
     if !is_nil(args[:middleware]) && !is_map(args[:middleware]) do
       raise "Expected middleware option is not a map, #{inspect(args[:middleware])}"
     end
-  end
-
-  # The health route has a different format, so just match that one
-  def validate_one_route({["/health"], [], Spacesuit.HealthHandler, %{}}) do
-    :ok
   end
 
   def validate_routes(routes) do

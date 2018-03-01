@@ -9,7 +9,7 @@ defmodule Spacesuit.ProxyHandler do
   @timed key: "timed.proxyHandler-handle", units: :millisecond
   def init(req, state) do
     route_name = Map.get(state, :description, "un-named")
-    Logger.info("Processing '#{route_name}'")
+    Logger.debug("Processing '#{route_name}'")
 
     %{method: method, headers: headers, peer: peer} = req
 

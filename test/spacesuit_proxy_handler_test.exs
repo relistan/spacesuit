@@ -32,6 +32,17 @@ defmodule SpacesuitProxyHandlerTest do
       processed = Spacesuit.ProxyHandler.hackney_to_cowboy(headers)
       assert Enum.all?(Map.keys(processed), fn k -> k == String.downcase(k) end)
     end
+
+    test "drops the content-length since we're running chunked encoding" do
+      headers = [
+        {"Content-Length", "1500"},
+        {"content-length", "1500"},
+        {"Another-Header", "this is valid"}
+      ]
+
+      processed = Spacesuit.ProxyHandler.hackney_to_cowboy(headers)
+      assert Enum.count(processed) == 1
+    end
   end
 
   test "adding headers specified in the config" do

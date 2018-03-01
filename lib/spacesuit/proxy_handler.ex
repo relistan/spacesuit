@@ -9,7 +9,7 @@ defmodule Spacesuit.ProxyHandler do
   @timed key: "timed.proxyHandler-handle", units: :millisecond
   def init(req, state) do
     route_name = Map.get(state, :description, "un-named")
-    Logger.info("Processing '#{route_name}'")
+    Logger.debug("Processing '#{route_name}'")
 
     %{method: method, headers: headers, peer: peer} = req
 
@@ -107,7 +107,7 @@ defmodule Spacesuit.ProxyHandler do
   def hackney_to_cowboy(headers) do
     headers
     |> List.foldl(%{}, fn {k, v}, memo -> Map.put(memo, String.downcase(k), v) end)
-    |> Map.drop(["Date", "date"])
+    |> Map.drop(["date", "content-length"])
   end
 
   # Format the peer from the request into a string that

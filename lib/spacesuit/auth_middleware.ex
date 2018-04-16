@@ -12,17 +12,7 @@ defmodule Spacesuit.AuthMiddleware do
         {:ok, req, env}
 
       "Bearer " <> token ->
-        case session_service()[:enabled] do
-          true ->
-            handle_bearer_token(req, env, token)
-
-          false ->
-            {:ok, req, env}
-
-          _ ->
-            Logger.warn("Session service :enabled not configured!")
-            {:ok, req, env}
-        end
+        handle_bearer_token(session_service()[:enabled], req, env, token)
 
       authorization ->
         # TODO we got some header but we don't know what it is
@@ -31,7 +21,10 @@ defmodule Spacesuit.AuthMiddleware do
     end
   end
 
-  defp handle_bearer_token(req, env, token) do
+  defp handle_bearer_token(session_service_enabled, request, environment, token)
+  defp handle_bearer_token(false, req, env, _token), do: {:ok, req, env}
+
+  defp handle_bearer_token(true, req, env, token) do
     if bypass_session_srv?(env) do
       case session_service()[:impl].validate_api_token(token) do
         :ok ->
@@ -46,6 +39,11 @@ defmodule Spacesuit.AuthMiddleware do
     else
       session_service()[:impl].handle_bearer_token(req, env, token, session_service()[:url])
     end
+  end
+
+  defp handle_bearer_token(_, req, env, _token) do
+    Logger.warn("Session service :enabled not configured!")
+    {:ok, req, env}
   end
 
   defp strip_auth(req) do

@@ -62,7 +62,7 @@ defmodule Spacesuit.ProxyHandler do
   def handle_reply(status, req, headers, upstream) do
     down_headers = headers |> hackney_to_cowboy
 
-    if !is_nil(upstream) do
+    if !is_nil(upstream) and @http_server.has_body(req) do
       # This always does a chunked reply, which is a shame because we
       # usually have the content-length. TODO figure this out.
       downstream = @http_server.stream_reply(status, down_headers, req)

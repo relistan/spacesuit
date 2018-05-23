@@ -53,6 +53,7 @@ defmodule Spacesuit.HttpServer.Mock do
   @behaviour HttpServer
 
   def stream_reply(_status, _down_headers, _req) do
+    send self(), {:reply, :stream_reply}
     :ok
   end
 
@@ -61,10 +62,12 @@ defmodule Spacesuit.HttpServer.Mock do
   end
 
   def reply(_code, _headers, _req) do
+    send self(), {:reply, :reply, :nomsg}
     :ok
   end
 
   def reply(_code, _headers, _msg, _req) do
+    send self(), {:reply, :reply, :msg}
     :ok
   end
 

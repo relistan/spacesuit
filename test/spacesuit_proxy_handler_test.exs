@@ -188,18 +188,15 @@ defmodule SpacesuitProxyHandlerTest do
   test "proxies requests with upstreams but without bodies without streaming" do
     headers = [
       {"Date", "Sun, 18 Dec 2016 12:12:02 GMT"},
-      {"Content-Length", "0"}
     ]
 
     req = %{
       bindings: [asdf: "foo"],
       method: "GET",
       qs: "shakespeare=literature",
-      path_info: [],
-      has_body: false
     }
 
-    Spacesuit.ProxyHandler.handle_reply(204, req, headers, self())
+    Spacesuit.ProxyHandler.handle_reply(200, req, headers, self())
 
     # The mocked Http server will send us a message telling us
     # which method was called. Not the best, but works.
@@ -215,16 +212,38 @@ defmodule SpacesuitProxyHandlerTest do
   test "proxies requests with upstreams AND bodies by streaming" do
     headers = [
       {"Date", "Sun, 18 Dec 2016 12:12:02 GMT"},
-      {"Content-Length", "0"}
+      {"Content-Length", "1"}
     ]
 
     req = %{
       bindings: [asdf: "foo"],
       method: "GET",
       qs: "shakespeare=literature",
-      path_info: [],
-      has_body: true,
-      body: ""
+      path_info: []
+    }
+
+    Spacesuit.ProxyHandler.handle_reply(200, req, headers, self())
+
+    # The mocked Http server will send us a message telling us
+    # which method was called. Not the best, but works.
+    good_reply =
+      receive do
+        {:reply, :stream_reply} -> true
+        {:reply, :reply, _} -> false
+      end
+
+    assert good_reply == true
+  end
+
+  test "proxies requests with a 204 status without streaming" do
+    headers = [
+      {"Date", "Sun, 18 Dec 2016 12:12:02 GMT"},
+    ]
+
+    req = %{
+      bindings: [asdf: "foo"],
+      method: "GET",
+      qs: "shakespeare=literature",
     }
 
     Spacesuit.ProxyHandler.handle_reply(204, req, headers, self())
@@ -233,8 +252,32 @@ defmodule SpacesuitProxyHandlerTest do
     # which method was called. Not the best, but works.
     good_reply =
       receive do
-        {:reply, :stream_reply} -> true
-        {:reply, :reply, _} -> false
+        {:reply, :stream_reply} -> false
+        {:reply, :reply, _} -> true
+      end
+
+    assert good_reply == true
+  end
+
+  test "proxies requests with a nil upstream without streaming" do
+    headers = [
+      {"Date", "Sun, 18 Dec 2016 12:12:02 GMT"},
+    ]
+
+    req = %{
+      bindings: [asdf: "foo"],
+      method: "GET",
+      qs: "shakespeare=literature",
+    }
+
+    Spacesuit.ProxyHandler.handle_reply(200, req, headers, nil)
+
+    # The mocked Http server will send us a message telling us
+    # which method was called. Not the best, but works.
+    good_reply =
+      receive do
+        {:reply, :stream_reply} -> false
+        {:reply, :reply, _} -> true
       end
 
     assert good_reply == true

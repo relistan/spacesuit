@@ -1,6 +1,7 @@
 defmodule Spacesuit.ProxyHandler do
   require Logger
   use Elixometer
+  require IEx
 
   @http_client Application.get_env(:spacesuit, :http_client)
   @http_server Application.get_env(:spacesuit, :http_server)
@@ -55,21 +56,43 @@ defmodule Spacesuit.ProxyHandler do
     end
   end
 
+  # Look at the headers and the status and figure out if this reponse
+  # will contain a body. Needed to make sure we send either a reply
+  # or a chunked reply.
+  def has_body(headers, status) do
+    has_key = headers
+    |> Enum.map(fn (x) -> { String.downcase(elem(x, 0)), elem(x, 1) } end)
+    |> List.keyfind("content-length", 0)
+
+    !is_nil(has_key) and status != 204
+  end
+
   # We got a valid response from upstream, so now we have to send it
-  # back to the client. But HEAD requests need to be treated differently
+  # back to the client. But some requests need to be treated differently
   # because Cowboy will return a 204 No Content if we try to use a
-  # `stream_reply` call.
+  # `stream_reply` call and the body is empty.
   def handle_reply(status, req, headers, upstream) do
     down_headers = headers |> hackney_to_cowboy
+    inner_reply(status, req, down_headers, upstream, {:body, has_body(headers, status)})
+  end
 
-    if !is_nil(upstream) and @http_server.has_body(req) do
-      # This always does a chunked reply, which is a shame because we
-      # usually have the content-length. TODO figure this out.
-      downstream = @http_server.stream_reply(status, down_headers, req)
-      stream(upstream, downstream)
-    else
-      @http_server.reply(status, down_headers, <<>>, req)
-    end
+  def inner_reply(204, req, down_headers, _, _) do
+    @http_server.reply(204, down_headers, <<>>, req)
+  end
+
+  def inner_reply(status, req, down_headers, upstream, _) when is_nil(upstream) do
+    @http_server.reply(status, down_headers, <<>>, req)
+  end
+
+  def inner_reply(status, req, down_headers, _, {:body, false}) do
+    @http_server.reply(status, down_headers, <<>>, req)
+  end
+
+  def inner_reply(status, req, down_headers, upstream, {:body, true}) do
+    # stream_reply always does a chunked reply, which is a shame because we
+    # usually have the content-length. TODO figure this out.
+    downstream = @http_server.stream_reply(status, down_headers, req)
+    stream(upstream, downstream)
   end
 
   # Run the route builder to generate the correct upstream URL based

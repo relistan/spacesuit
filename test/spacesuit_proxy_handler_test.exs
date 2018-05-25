@@ -282,4 +282,29 @@ defmodule SpacesuitProxyHandlerTest do
 
     assert good_reply == true
   end
+
+  test "proxies requests with a transfer-encoding by streaming" do
+    headers = [
+      {"Date", "Sun, 18 Dec 2016 12:12:02 GMT"},
+      {"TRanSfer-encodinG", "chunked"}
+    ]
+
+    req = %{
+      bindings: [asdf: "foo"],
+      method: "GET",
+      qs: "shakespeare=literature",
+    }
+
+    Spacesuit.ProxyHandler.handle_reply(200, req, headers, self())
+
+    # The mocked Http server will send us a message telling us
+    # which method was called. Not the best, but works.
+    good_reply =
+      receive do
+        {:reply, :stream_reply} -> true
+        {:reply, :reply, _} -> false
+      end
+
+    assert good_reply == true
+  end
 end

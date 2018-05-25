@@ -56,15 +56,24 @@ defmodule Spacesuit.ProxyHandler do
     end
   end
 
+  # The presence of a content-length header or a transfer-encoding header
+  # indicates that the response will contain a body. We have to decide
+  # based on headers because we don't want to buffer the body into memory.
+  def has_body_keys?(headers) do
+    List.keymember?(headers, "content-length", 0) or
+      List.keymember?(headers, "transfer-encoding", 0)
+  end
+
   # Look at the headers and the status and figure out if this reponse
   # will contain a body. Needed to make sure we send either a reply
   # or a chunked reply.
-  def has_body(headers, status) do
-    has_key = headers
-    |> Enum.map(fn (x) -> { String.downcase(elem(x, 0)), elem(x, 1) } end)
-    |> List.keyfind("content-length", 0)
+  def has_body?(headers, status) do
+    has_key =
+      headers
+      |> Enum.map(fn x -> {String.downcase(elem(x, 0)), elem(x, 1)} end)
+      |> has_body_keys?
 
-    !is_nil(has_key) and status != 204
+    has_key and status != 204
   end
 
   # We got a valid response from upstream, so now we have to send it
@@ -73,7 +82,7 @@ defmodule Spacesuit.ProxyHandler do
   # `stream_reply` call and the body is empty.
   def handle_reply(status, req, headers, upstream) do
     down_headers = headers |> hackney_to_cowboy
-    inner_reply(status, req, down_headers, upstream, {:body, has_body(headers, status)})
+    inner_reply(status, req, down_headers, upstream, {:body, has_body?(headers, status)})
   end
 
   def inner_reply(204, req, down_headers, _, _) do

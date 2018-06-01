@@ -15,7 +15,7 @@ defmodule Spacesuit do
     dispatch = Spacesuit.Router.load_routes() |> :cowboy_router.compile()
 
     {:ok, _} =
-      :cowboy.start_clear(:http, 600, [port: @http_port], %{
+      :cowboy.start_clear(:http, 100, [port: @http_port], %{
         env: %{
           dispatch: dispatch
         },

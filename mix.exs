@@ -10,7 +10,7 @@ defmodule Spacesuit.Mixfile do
     [
       app: :spacesuit,
       version: "0.1.0",
-      elixir: "~> 1.4",
+      elixir: "~> 1.7.4",
       build_embedded: build_embedded?(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -31,7 +31,8 @@ defmodule Spacesuit.Mixfile do
         :crypto,
         :jose,
         :exometer_newrelic_reporter,
-        :elixometer
+        :elixometer,
+        :new_relic_agent
       ],
       mod: {Spacesuit, []}
     ]
@@ -50,14 +51,16 @@ defmodule Spacesuit.Mixfile do
     [
       # All envs
       {:hackney, "~> 1.7.1", override: true},
-      {:cowboy, github: "extend/cowboy"},
+      {:cowboy, "~> 2.5", override: true},
       {:poison, "~> 3.0", override: true},
       {:jsx, "~> 2.8.0"},
       {:joken, "~> 1.4.1"},
+      {:distillery, "~> 1.5.5"},
       {:elixometer, github: "pinterest/elixometer"},
       {:exometer_newrelic_reporter, github: "nitro/exometer_newrelic_reporter"},
       {:lager, "3.2.4", override: true},
       {:lager_logger, github: "PSPDFKit-labs/lager_logger"},
+      {:new_relic_agent, "~> 1.9.8"},
 
       # Test only
       {:excoveralls, "~> 0.6", only: :test},

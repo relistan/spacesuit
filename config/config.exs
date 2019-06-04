@@ -59,6 +59,10 @@ if System.get_env("NEW_RELIC_LICENSE_KEY") != "" do
 
   config :elixometer, reporter: :"Elixir.Exometer.NewrelicReporter",
     update_frequency: 60_000
+
+  config :new_relic_agent, app_name: "Spacesuit #{Mix.env}",
+    license_key: System.get_env("NEW_RELIC_LICENSE_KEY")
+
 end
 
 # Health route

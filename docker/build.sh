@@ -1,6 +1,8 @@
 #!/bin/bash -e
 
-docker build -f docker/Dockerfile -t gonitro/spacesuit .
+EXTRA_ARGS="$@" # in order to pass extra arguments such as --no-cache --rm=false
+
+docker build -f docker/Dockerfile -t gonitro/spacesuit ${EXTRA_ARGS} .
 if [[ $? -ne 0 ]]; then
 	echo "Something went wrong, aborting container build" >&2
 	exit
